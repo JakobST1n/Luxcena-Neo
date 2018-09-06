@@ -1,0 +1,368 @@
+.general header, .general main, .general footer {
+  padding-left: 300px; }
+
+.general header .brand-logo {
+  padding-left: 15px; }
+
+@media only screen and (max-width: 992px) {
+  .general header, .general main, .general footer {
+    padding-left: 0; } }
+
+.general .user-view {
+  margin-top: 5px;
+  height: 150px; }
+
+.general .user-view .background {
+  margin-left: 85px; }
+
+@keyframes highlightNew {
+  0% {
+    background-color: #ffc107; }
+  100% {
+    background-color: white; } }
+
+.general .newLogEntry {
+  -webkit-animation-name: highlightNew;
+  /* Safari 4.0 - 8.0 */
+  -webkit-animation-duration: 4s;
+  /* Safari 4.0 - 8.0 */
+  animation-name: highlightNew;
+  animation-duration: 4s; }
+
+#scripts .script-list .badge {
+  margin-left: 0;
+  float: none; }
+
+#scripts .card {
+  /*margin-bottom: 60px;*/ }
+
+@media only screen and (max-width: 599px) {
+  #scripts .card-action {
+    border-top: 0 !important;
+    padding: 0 !important;
+    height: 0;
+    transition: padding 0.5s ease 0s, height 0.5s ease 0s; }
+  #scripts .card-action a i {
+    transform: scale(0);
+    transition: transform 0.1s ease 0.1s; }
+  #scripts .card:hover > .card-action {
+    height: 55px;
+    padding: 16px 24px !important; }
+  #scripts .card:hover > .card-action > a > i {
+    transform: scale(1); } }
+
+.neo_ide html,
+.neo_ide body {
+  height: 100%;
+  font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  padding: 0;
+  margin: 0;
+  /*margin-top: -20px;*/
+  overflow: auto; }
+
+.neo_ide #editor {
+  width: 100%;
+  height: 100%;
+  margin: -10px; }
+
+.neo_ide .page-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; }
+
+.neo_ide .nav-container {
+  width: 100%;
+  height: 45px;
+  background-color: #333333; }
+  .neo_ide .nav-container ul {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex: 1;
+    align-self: center;
+    width: 100%;
+    list-style: none; }
+  .neo_ide .nav-container ul .left {
+    color: white;
+    padding: 15px;
+    margin-left: -40px;
+    margin-top: -19px;
+    font-size: 20px; }
+  .neo_ide .nav-container ul .center {
+    color: white; }
+  .neo_ide .nav-container ul .right {
+    width: 80px;
+    margin-right: 174px;
+    color: white; }
+  .neo_ide .nav-container ul .right .button {
+    padding: 15px;
+    margin-top: -15px; }
+  .neo_ide .nav-container .fileName {
+    color: grey; }
+  .neo_ide .nav-container ul .button:hover {
+    background-color: black; }
+
+@keyframes menuBarIn {
+  from {
+    height: 0; }
+  to {
+    height: 25px; } }
+
+@keyframes menuBarOut {
+  from {
+    height: 25px; }
+  to {
+    height: 0; } }
+
+.neo_ide .menuBarIn {
+  animation-name: menuBarIn;
+  animation-duration: 0.5s;
+  height: 25px !important; }
+
+.neo_ide .menuBarOut {
+  animation-name: menuBarOut;
+  animation-duration: 0.5s;
+  height: 0px !important; }
+
+.neo_ide .menubar-container {
+  background-color: #4e4e4e;
+  height: 0; }
+  .neo_ide .menubar-container ul {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    width: 100%;
+    list-style: none;
+    margin-top: 2px;
+    margin-left: -30px; }
+  .neo_ide .menubar-container .button {
+    background-color: #3e3e3e;
+    color: white;
+    padding: 3px 10px 3px 10px;
+    margin-right: 4px;
+    font-size: 13px;
+    border-radius: 7px; }
+  .neo_ide .menubar-container .button:hover {
+    background-color: black; }
+
+.neo_ide .panel-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden; }
+  .neo_ide .panel-container .panel-top {
+    flex: 0 0 auto;
+    padding: 10px;
+    height: 80%;
+    width: 100%;
+    white-space: nowrap;
+    background: #838383;
+    color: white; }
+  .neo_ide .panel-container .splitter {
+    flex: 0 0 auto;
+    margin-top: -20px;
+    height: 25px;
+    background: url(https://raw.githubusercontent.com/RickStrahl/jquery-resizable/master/assets/hsizegrip.png) center center no-repeat #535353;
+    cursor: row-resize; }
+  .neo_ide .panel-container .splitter .text {
+    margin-left: 10px;
+    margin-top: 4px;
+    color: #cccccc; }
+    .neo_ide .panel-container .splitter .text span {
+      margin-left: 5px; }
+  .neo_ide .panel-container .panel-bottom {
+    flex: 1 1 auto;
+    padding: 10px;
+    /*min-height: 200px;*/
+    background: black;
+    color: white;
+    overflow-y: scroll; }
+  .neo_ide .panel-container .panel-bottom pre {
+    margin-top: -10px; }
+    .neo_ide .panel-container .panel-bottom pre .stdout {
+      color: white; }
+    .neo_ide .panel-container .panel-bottom pre .stderr {
+      color: red; }
+    .neo_ide .panel-container .panel-bottom pre .close {
+      color: yellow; }
+
+.neo_ide label {
+  font-size: 1.2em;
+  display: block;
+  font-weight: bold;
+  margin: 30px 0 10px; }
+
+.neo_ide .page-loader {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #1fa2ed;
+  color: #fff; }
+  .neo_ide .page-loader .loader {
+    display: flex;
+    justify-content: center;
+    flex-flow: nowrap column;
+    align-items: center;
+    min-height: 100vh; }
+  .neo_ide .page-loader .loading {
+    display: flex;
+    margin: 24px 0; }
+  .neo_ide .page-loader .loading__element {
+    font: normal 100 2rem/1 Roboto;
+    letter-spacing: .5em; }
+  .neo_ide .page-loader [class*="el"] {
+    animation: bouncing 3s infinite ease; }
+  .neo_ide .page-loader .el1 {
+    animation-delay: 0.1s; }
+  .neo_ide .page-loader .el2 {
+    animation-delay: 0.2s; }
+  .neo_ide .page-loader .el3 {
+    animation-delay: 0.3s; }
+  .neo_ide .page-loader .el4 {
+    animation-delay: 0.4s; }
+  .neo_ide .page-loader .el5 {
+    animation-delay: 0.5s; }
+  .neo_ide .page-loader .el6 {
+    animation-delay: 0.6s; }
+  .neo_ide .page-loader .el7 {
+    animation-delay: 0.7s; }
+  .neo_ide .page-loader .el8 {
+    animation-delay: 0.8s; }
+  .neo_ide .page-loader .el9 {
+    animation-delay: 0.9s; }
+  .neo_ide .page-loader .el10 {
+    animation-delay: 1s; }
+  .neo_ide .page-loader .el11 {
+    animation-delay: 1.1s; }
+  .neo_ide .page-loader .el12 {
+    animation-delay: 1.2s; }
+  .neo_ide .page-loader .el13 {
+    animation-delay: 1.3s; }
+  .neo_ide .page-loader .el14 {
+    animation-delay: 1.4s; }
+  .neo_ide .page-loader .el15 {
+    animation-delay: 1.5s; }
+  .neo_ide .page-loader .el16 {
+    animation-delay: 1.6s; }
+  .neo_ide .page-loader .el17 {
+    animation-delay: 1.7s; }
+  .neo_ide .page-loader .el18 {
+    animation-delay: 1.8s; }
+  .neo_ide .page-loader .el19 {
+    animation-delay: 1.9s; }
+
+@keyframes bouncing {
+  0%, 100% {
+    transform: scale3d(1, 1, 1); }
+  50% {
+    transform: scale3d(0, 0, 1); } }
+  .neo_ide .page-loader .current-event {
+    color: rgba(255, 255, 255, 0.53);
+    font: normal 100 1rem/1 Roboto;
+    letter-spacing: .1em; }
+
+#update * {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-sizing: border-box; }
+  #update *:before, #update *:after {
+    box-sizing: inherit; }
+
+#update html {
+  width: 100vw;
+  height: 100vh; }
+
+#update body {
+  background-color: #1fa2ed;
+  color: #fff; }
+
+#update .start-screen {
+  display: flex;
+  justify-content: center;
+  flex-flow: nowrap column;
+  align-items: center;
+  min-height: 100vh; }
+
+#update .loading {
+  display: flex;
+  margin: 24px 0; }
+
+#update .loading__element {
+  font: normal 100 2rem/1 Roboto;
+  letter-spacing: .5em; }
+
+#update [class*="el"] {
+  animation: bouncing 3s infinite ease; }
+
+#update .el1 {
+  animation-delay: 0.1s; }
+
+#update .el2 {
+  animation-delay: 0.2s; }
+
+#update .el3 {
+  animation-delay: 0.3s; }
+
+#update .el4 {
+  animation-delay: 0.4s; }
+
+#update .el5 {
+  animation-delay: 0.5s; }
+
+#update .el6 {
+  animation-delay: 0.6s; }
+
+#update .el7 {
+  animation-delay: 0.7s; }
+
+#update .el8 {
+  animation-delay: 0.8s; }
+
+#update .el9 {
+  animation-delay: 0.9s; }
+
+#update .el10 {
+  animation-delay: 1s; }
+
+#update .el11 {
+  animation-delay: 1.1s; }
+
+#update .el12 {
+  animation-delay: 1.2s; }
+
+#update .el13 {
+  animation-delay: 1.3s; }
+
+#update .el14 {
+  animation-delay: 1.4s; }
+
+#update .el15 {
+  animation-delay: 1.5s; }
+
+#update .el16 {
+  animation-delay: 1.6s; }
+
+#update .el17 {
+  animation-delay: 1.7s; }
+
+#update .el18 {
+  animation-delay: 1.8s; }
+
+#update .el19 {
+  animation-delay: 1.9s; }
+
+@keyframes bouncing {
+  0%, 100% {
+    transform: scale3d(1, 1, 1); }
+  50% {
+    transform: scale3d(0, 0, 1); } }
+
+#update .current-event {
+  color: rgba(255, 255, 255, 0.53);
+  font: normal 100 1rem/1 Roboto;
+  letter-spacing: .1em; }
+

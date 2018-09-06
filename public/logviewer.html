@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html class="general">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Luxcena Neo - LogViewer</title>
+
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-alpha.4/css/materialize.min.css">
+        <link rel="stylesheet" href="/css/bundle.css" type="text/css" />
+    </head>
+
+    <body id="logviewer">
+        <header>
+            <nav class="nav-extended">
+                <div class="nav-wrapper">
+                    <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+                    <a href="#" class="brand-logo">Luxcena Neo</a>
+                </div>
+                <div class="nav-content">
+                    <ul class="tabs tabs-transparent">
+                        <li class="tab"><a class="active" href="#basic">Basic</a></li>
+                        <li class="tab"><a href="#advanced">Advanced</a></li>
+                        <li class="tab"><a href="#script">Script</a></li>
+                        <li class="tab"><a href="#raw">RAW</a></li>
+                    </ul>
+                </div>
+            </nav>
+            <div id="sidenav"></div>
+        </header>
+
+        <main class="row">
+            <div id="basic" class="col s12">
+                <table class="highlight log-table">
+                    <tbody id="log-table-basic" class="log-table-body"></tbody>
+                </table>
+            </div>
+            <div id="advanced" class="col s12">
+                <table class="highlight log-table">
+                    <tbody id="log-table-advanced" class="log-table-body"></tbody>
+                </table>
+            </div>
+            <div id="script" class="col s12">
+                <table class="highlight log-table">
+                    <tbody id="log-table-script" class="log-table-body"></tbody>
+                </table>
+            </div>
+            <div id="raw" class="col s12">
+                <div class="col s12 m12">
+                    <div class="card lighten-3">
+                        <div class="card-content">
+                            This is nothing useful at the moment. Please view the file in your terminal. If you want to watch it, you can go to the rootDir of Luxcena-Neo, and type:
+                            <pre>tail -fn 20 usrData/logs/logger.log</pre>
+                            This will show the last twenty lines of the file, an show any new lines.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="/js/bundle.js"></script>
+    </body>
+</html>

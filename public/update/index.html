@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html id="update">
+    <head>
+        <link rel="stylesheet" href="/css/bundle.css" type="text/css" />
+    </head>
+
+    <body>
+        <div class="start-screen">
+            <div class="loading">
+                <div class="loading__element el1">L</div>
+                <div class="loading__element el2">U</div>
+                <div class="loading__element el3">X</div>
+                <div class="loading__element el4">C</div>
+                <div class="loading__element el5">E</div>
+                <div class="loading__element el6">N</div>
+                <div class="loading__element el7">A</div>
+                <div class="loading__element el8">&#0160;</div>
+                <div class="loading__element el9">I</div>
+                <div class="loading__element el10">S</div>
+                <div class="loading__element el11">&#0160;</div>
+                <div class="loading__element el12">U</div>
+                <div class="loading__element el13">P</div>
+                <div class="loading__element el14">D</div>
+                <div class="loading__element el15">A</div>
+                <div class="loading__element el16">T</div>
+                <div class="loading__element el17">I</div>
+                <div class="loading__element el18">N</div>
+                <div class="loading__element el19">G</div>
+            </div>
+            <div class="current-event">
+                <p id="event-text"></p>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            let socket = io();
+
+            socket.on("updaterStatus", (msg) => {
+                document.getElementById("event-text").innerHTML = msg;
+            });
+
+            setInterval(() => {
+                socket.emit("UpdaterStatus");
+            }, 500);
+        </script>
+    </body>
+</html>

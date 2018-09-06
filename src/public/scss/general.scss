@@ -1,0 +1,44 @@
+.general {
+
+    header, main, footer {
+      padding-left: 300px;
+    }
+
+    header .brand-logo {
+      padding-left: 15px;
+    }
+
+    @media only screen and (max-width : 992px) {
+      header, main, footer {
+        padding-left: 0;
+      }
+    }
+
+    .user-view {
+      margin-top: 5px;
+      height: 150px;
+    }
+
+    .user-view .background {
+      margin-left: 85px;
+    }
+
+    .log-table {
+
+
+
+
+    }
+
+    @keyframes highlightNew {
+      0%   {background-color:#ffc107;}
+      100% {background-color:white;}
+    }
+
+    .newLogEntry {
+      -webkit-animation-name: highlightNew; /* Safari 4.0 - 8.0 */
+      -webkit-animation-duration: 4s; /* Safari 4.0 - 8.0 */
+      animation-name: highlightNew;
+      animation-duration: 4s;
+    }
+}

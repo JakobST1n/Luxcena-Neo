@@ -1,0 +1,36 @@
+{
+  "name": "luxcena-neo",
+  "version": "0.0.1",
+  "description": "Some description.",
+  "dependencies": {
+    "express": "^4.16.3",
+    "fs-extra": "^7.0.0",
+    "request": "^2.88.0",
+    "socket.io": "^2.1.1"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "dev": "webpack; npm start"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
+    "babel-preset-es2015": "^6.24.1",
+    "css-loader": "^1.0.0",
+    "extract-loader": "^2.0.1",
+    "file-loader": "^2.0.0",
+    "mini-css-extract-plugin": "^0.4.2",
+    "node-sass": "^4.9.3",
+    "sass-loader": "^7.1.0",
+    "style-loader": "^0.22.1",
+    "webpack": "^4.17.1",
+    "webpack-cli": "^3.1.0",
+    "monaco-editor": "^0.14.3"
+  },
+  "author": "jakobs1n",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JakobS1n/Luxcena-Neo"
+  }
+}
