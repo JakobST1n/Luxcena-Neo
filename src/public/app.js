@@ -15,3 +15,5 @@ try {
 
 // Require all styles
 require("./app.scss");
+// Require font awesome
+require("fontawesome");
