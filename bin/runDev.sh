@@ -6,7 +6,7 @@ if [ "$#" -gt "1" ]; then
     node app.js $1
 else
     mkdir -p tmp
-    mkdir -p tmp/usrData
+    mkdir -p tmp/userdata
     mkdir -p tmp/logs
     node app.js "$PWD/tmp/"
 fi
