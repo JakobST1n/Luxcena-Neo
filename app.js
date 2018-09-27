@@ -9,7 +9,7 @@ let io = require("socket.io").listen(server);
 let srcDir = __dirname;
 let installDir = "/home/pi/luxcena-neo-install/"
 if (process.argv.length >= 3) { installDir = process.argv[2]; }
-let dataDir = installDir + "/usrData/";
+let dataDir = installDir + "/userdata/";
 if (!fse.existsSync(dataDir)) { throw new Error("APPDIR not found! Exiting..."); }
 
 // Secondly we setup the logger, and the global access to "runtimeData"; a jSON-file containing some runtimeData
