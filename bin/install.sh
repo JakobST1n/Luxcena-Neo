@@ -106,13 +106,13 @@ tput sgr0
 tput setaf 8
 printf '%s\n' "  - Creating user 'lux-neo'..."
 username="lux-neo"
-egrep "^$username" /etc/passwd >/dev/null
+sudo egrep "^$username" /etc/passwd >/dev/null
 if [ $? -eq 0 ]; then
 	echo "$username exists!"
 	exit 1
 else
 	#pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
-	useradd -m $username
+	sudo useradd -m $username
 	[ $? -eq 0 ] && echo "User has been added to system!" || { printf "\n\nInstall failed.\n"; exit 1; }
 fi
 tput sgr0
