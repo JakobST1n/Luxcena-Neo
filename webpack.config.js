@@ -9,8 +9,10 @@ module.exports = {
         filename: "bundle.js"
     },
     resolve: {
+        extensions: ['.js', '.css', '.scss'],
         alias: {
-            "node_modules": path.join(__dirname, "node_modules")
+            "fontawesome": path.join(__dirname, "/node_modules/@fortawesome/fontawesome-free/js/all.min.js"),
+            "node_modules": path.join(__dirname, "/node_modules")
         }
     },
     module: {
