@@ -50,8 +50,8 @@ function dlgYN() {
 dlgYN ". Update your system" res
 if [ $res -eq 1 ]; then
     tput sc
-    apt-get -y -qq update &>> $LOG || die
-    apt-get -y -qq upgrade &>> $LOG || die
+    apt-get -y update &>> $LOG || die
+    apt-get -y upgrade &>> $LOG || die
     tput rc; tput ed
 fi
 
@@ -59,7 +59,7 @@ fi
 dlgYN ". Install required packages" res
 if [ $res -eq 1 ]; then
     tput sc
-    apt-get -y -qq install nodejs scons python-dev swig &>> $LOG || die
+    apt-get -y install nodejs scons python-dev swig &>> $LOG || die
     if [ $? -eq 0 ]; then
         tput rc; tput ed
         printf "✓"
