@@ -115,8 +115,10 @@ printf '%s\n' "  - Running npm i..."
 tput sgr0
 tput sc
 export NODE_ENV=production || { printf "\n\nInstall failed.\n"; exit 1; }
-sudo runuser -l $username -c 'npm --prefix ~/install/src install ~/install/src --only=production || { printf "\n\nInstall failed.\n"; exit 1; }' # This is probably a bit overkill to have --only=... but better safe than sorry?
-if [ $? -eq 0 ]; then
+sudo runuser -l $username -c 'npm --prefix ~/install/src install ~/install/src --only=production' # This is probably a bit overkill to have --only=... but better safe than sorry?
+if [ $? -ne 0 ]; then
+    printf "\n\nInstall failed.\n"
+    exit 1
 fi
 tput rc; tput ed
 
