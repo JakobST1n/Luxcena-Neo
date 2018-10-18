@@ -109,8 +109,7 @@ tput sgr0
 username="lux-neo"
 sudo egrep "^$username" /etc/passwd >/dev/null
 if [ $? -eq 0 ]; then
-	echo "$username exists!"
-	exit 1
+	echo "User already exists, continuing..."
 else
 	#pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
 	sudo useradd -m $username
@@ -144,7 +143,7 @@ printf '%s\n' "  - Running npm i..."
 tput sgr0
 tput sc
 export NODE_ENV=production || { printf "\n\nInstall failed.\n"; exit 1; }
-runuser -l $username -c "npm --prefix ~/install/src install ~/install/src --only=production || { printf "\n\nInstall failed.\n"; exit 1; }" # This is probably a bit overkill to have --only=... but better safe than sorry?
+sudo runuser -l $username -c "npm --prefix ~/install/src install ~/install/src --only=production || { printf "\n\nInstall failed.\n"; exit 1; }" # This is probably a bit overkill to have --only=... but better safe than sorry?
 tput rc; tput ed
 
 # Fifth we add the service files
