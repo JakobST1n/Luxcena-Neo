@@ -5,6 +5,26 @@ printf '%s\n' "Luxcena-neo Installer"
 tput sgr0
 printf '\e[93m%s\e[0m\n\n' "---------------------"
 
+LOG="/tmp/luxcena-neo.install.log"
+touch $LOG
+echo "Starting Luxcena-neo installer..." >> LOG
+
+if [ "$EUID" -ne 0 ]; then
+    echo "You need to run this script as root."
+    echo "Try running with 'sudo ./bin/install.sh'"
+    exit 1
+fi
+
+function die() {
+    tput setaf 1
+    printf "\n\nInstall failed.\n"
+    printf "Check the logfile at '/tmp/lucxena-neo.install.log'.\n"
+    printf "Use this command to see the last 30 lines of the file;\n"
+    printf "    tail -n 30 /tmp/luxcena-neo.install.log"
+    tput sgr0
+    exit 1
+}
+
 function dlgYN() {
     tput sc
     tput setaf 4
@@ -31,8 +51,8 @@ function dlgYN() {
 dlgYN ". Update your system" res
 if [ $res -eq 1 ]; then
     tput sc
-    sudo apt-get -y -qq update || { printf "\n\nInstall failed.\n"; exit 1; }
-    sudo apt-get -y -qq upgrade || { printf "\n\nInstall failed.\n"; exit 1; }
+    apt-get -y -qq update >> LOG || die
+    apt-get -y -qq upgrade >> LOG || die
     tput rc; tput ed
 fi
 
@@ -40,7 +60,7 @@ fi
 dlgYN ". Install required packages" res
 if [ $res -eq 1 ]; then
     tput sc
-    sudo apt-get -y -qq install nodejs scons python-dev swig || { printf "\n\nInstall failed.\n"; exit 1; }
+    apt-get -y -qq install nodejs scons python-dev swig >> LOG || die
     if [ $? -eq 0 ]; then
         tput rc; tput ed
         printf "✓"
@@ -79,12 +99,12 @@ tput setaf 8
 printf '%s\n' "  - Creating user 'lux-neo'..."
 tput sgr0
 username="lux-neo"
-sudo egrep "^$username" /etc/passwd >/dev/null
+egrep "^$username" /etc/passwd >/dev/null
 if [ $? -eq 0 ]; then
 	echo "User already exists, continuing..."
 else
 	#pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
-	sudo useradd -m $username || { printf "\n\nInstall failed.\n"; exit 1; }
+	useradd -m $username >> LOG || die
 fi
 
 # First we make our directories
@@ -92,39 +112,35 @@ tput setaf 8
 printf '%s\n' "  - Making app-dir (/bin/luxcena-neo)..."
 tput sgr0
 userDir=$(eval echo "~$username")
-sudo mkdir -p "$userDir/install" || { printf "\n\nInstall failed.\n"; exit 1; }
-sudo chown $username:$username "$userDir/install"
-sudo mkdir -p "$userDir/install/src" || { printf "\n\nInstall failed.\n"; exit 1; }
-sudo chown $username:$username "$userDir/install/src"
-sudo mkdir -p "$userDir/install/userdata" || { printf "\n\nInstall failed.\n"; exit 1; }
-sudo chown $username:$username "$userDir/install/userdata"
+mkdir -p "$userDir/install" >> LOG || die
+chown $username:$username "$userDir/install" >> LOG || die
+mkdir -p "$userDir/install/src" >> LOG || die
+chown $username:$username "$userDir/install/src" >> LOG || die
+mkdir -p "$userDir/install/userdata" >> LOG || die
+chown $username:$username "$userDir/install/userdata" >> LOG || die
 
 # Third we copy the source into the correct swap-folder
 tput setaf 8
 printf '%s\n' "  - Copying sourceCode to app-dir..."
 tput sgr0
-sudo cp -r . "$userDir/install/src" || { printf "\n\nInstall failed.\n"; exit 1; }
-sudo chown -R $username:$username "$userDir/install/src"
+cp -r . "$userDir/install/src" >> LOG || die
+chown -R $username:$username "$userDir/install/src" >> LOG || die
 
 # fourth we run npm i
 tput setaf 8
 printf '%s\n' "  - Running npm i..."
 tput sgr0
 tput sc
-export NODE_ENV=production || { printf "\n\nInstall failed.\n"; exit 1; }
-sudo runuser -l $username -c 'npm --prefix ~/install/src install ~/install/src --only=production' # This is probably a bit overkill to have --only=... but better safe than sorry?
-if [ $? -ne 0 ]; then
-    printf "\n\nInstall failed.\n"
-    exit 1
-fi
+export NODE_ENV=production >> LOG || die
+runuser -l $username -c 'npm --prefix ~/install/src install ~/install/src --only=production' >> LOG || die # This is probably a bit overkill to have --only=... but better safe than sorry?
 tput rc; tput ed
 
 # Fifth we add the service files
 tput setaf 8
 printf '%s\n' "  - Adding service-file to systemd..."
 tput sgr0
-sudo cp bin/luxcena-neo.service /etc/systemd/system/luxcena-neo.service
-sudo systemctl daemon-reload
+cp bin/luxcena-neo.service /etc/systemd/system/luxcena-neo.service >> LOG || die
+systemctl daemon-reload >> LOG || die
 
 # Installation is done!
 printf '\n\e[5m%s\e[0m\n' "🎉Luxcena-Neo is now installed🎉"
