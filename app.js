@@ -63,7 +63,12 @@ if (!fse.existsSync(dataDir + "/config/versionChecker.json")) {
 if (!fse.existsSync(dataDir + "/config/strip.json")) {
     fse.writeJsonSync(dataDir + "/config/strip.json", {
         "segments": [9, 8, 8, 8, 8, 8, 4],
-        "segmentConfiguration": "snake"
+        "segmentConfiguration": "snake",
+        "led_pin": 18,
+        "led_freq_hz": 800000,
+        "led_dma": 10,
+        "led_invert": false,
+        "led_channel": 0
     })
 }
 

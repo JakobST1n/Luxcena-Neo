@@ -98,69 +98,44 @@ tput sgr0
 tput sc
 tput bel
 
-piModel=0
-printf "\n\n\n" # So that the menu just erases things it has alredy written
-while :
-do
-    tput cuu 3
-    tput ed
-    tput sc
-    tput setaf 8
-
-    if [[ piModel -eq 0 ]]; then
-        tput sgr0; fi
-    printf '%s\n' "- Raspberry Pi B"
-    tput setaf 8
-    if [[ piModel -eq 1 ]]; then
-        tput sgr0; fi
-    printf '%s\n' "- Raspberry Pi B+"
-    tput setaf 8
-    if [[ piModel -eq 2 ]]; then
-        tput sgr0; fi
-    printf '%s\n' "- Raspberry Pi Model 2"
-    tput setaf 8
-
-    read -sn1 key
-    if [ "$key" == "j" ]; then
-        piModel=$((piModel+1))
-        if [[ piModel -gt 2 ]]; then
-            piModel=2
-        fi
-    fi
-    if [ "$key" == "k" ]; then
-        piModel=$((piModel-1))
-        if [[ piModel -lt 0 ]]; then
-            piModel=0
-        fi
-    fi
-    if [ "$key" == "" ]; then
-        tput cuu 4
-        tput ed
-        tput sgr0
-        printf "%s\e[0;34m%s\e[0m\n" ". Which rPi is this? " "ListItem #$piModel"
-        break
-    fi
-
-done
-
-
 tput setaf 4
 printf ". Installing the app itself...\n"
+tput sgr0
+
+# Create user 'luxcena-neo'
+tput setaf 8
+printf '%s\n' "  - Creating user 'lux-neo'..."
+username="lux-neo"
+egrep "^$username" /etc/passwd >/dev/null
+if [ $? -eq 0 ]; then
+	echo "$username exists!"
+	exit 1
+else
+	#pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
+	useradd -m $username
+	[ $? -eq 0 ] && echo "User has been added to system!" || { printf "\n\nInstall failed.\n"; exit 1; }
+fi
+tput sgr0
+
+# Change to the new user
+tput setaf 8
+printf '%s\n' "  - Changing to new user..."
+sudo su lux-neo
 tput sgr0
 
 # First we make our directories
 tput setaf 8
 printf '%s\n' "  - Making app-dir (/bin/luxcena-neo)..."
 tput sgr0
-mkdir ~/luxcena-neo-install || { printf "\n\nInstall failed.\n"; exit 1; }
-mkdir ~/luxcena-neo-install/src || { printf "\n\nInstall failed.\n"; exit 1; }
-mkdir ~/luxcena-neo-install/userdata || { printf "\n\nInstall failed.\n"; exit 1; }
+mkdir ~/install || { printf "\n\nInstall failed.\n"; exit 1; }
+mkdir ~/install/src || { printf "\n\nInstall failed.\n"; exit 1; }
+mkdir ~/install/userdata || { printf "\n\nInstall failed.\n"; exit 1; }
 
 # Third we copy the source into the correct swap-folder
 tput setaf 8
 printf '%s\n' "  - Copying sourceCode to app-dir..."
 tput sgr0
-cp -r . ~/luxcena-neo-install/src || { printf "\n\nInstall failed.\n"; exit 1; }
+cp -r . ~/install/src || { printf "\n\nInstall failed.\n"; exit 1; }
 
 # fourth we run npm i
 tput setaf 8
@@ -168,7 +143,7 @@ printf '%s\n' "  - Running npm i..."
 tput sgr0
 tput sc
 export NODE_ENV=production || { printf "\n\nInstall failed.\n"; exit 1; }
-npm --prefix ~/luxcena-neo-install/src install ~/luxcena-neo-install/src --only=production || { printf "\n\nInstall failed.\n"; exit 1; } # This is probably a bit overkill to have --only=... but better safe than sorry?
+npm --prefix ~/install/src install ~/install/src --only=production || { printf "\n\nInstall failed.\n"; exit 1; } # This is probably a bit overkill to have --only=... but better safe than sorry?
 tput rc; tput ed
 
 # Fifth we add the service files
