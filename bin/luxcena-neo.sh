@@ -5,4 +5,5 @@
 # the server needs root as well.
 
 #runuser -l pi -c "export NODE_ENV=production; node ~/luxcena-neo-install/src/app.js"
-export NODE_ENV=production; node /home/pi/luxcena-neo-install/src/app.js
+export NODE_ENV=production
+node /home/lux-neo/install/src/app.js
