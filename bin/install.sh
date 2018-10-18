@@ -5,11 +5,6 @@ printf '%s\n' "Luxcena-neo Installer"
 tput sgr0
 printf '\e[93m%s\e[0m\n\n' "---------------------"
 
-if [ $USER != "pi" ]; then
-    printf "Install failed...\nOther user than 'pi' detected. If you want to use another user, you have to install manually."
-    exit 1
-fi
-
 # Update system
 tput sc
 tput setaf 4
