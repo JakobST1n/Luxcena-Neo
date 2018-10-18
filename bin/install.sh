@@ -84,17 +84,14 @@ if [ $? -eq 0 ]; then
 	echo "User already exists, continuing..."
 else
 	#pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
-	sudo useradd -m $username
-	[ $? -eq 0 ] && echo "User has been added to system!" || { printf "\n\nInstall failed.\n"; exit 1; }
+	sudo useradd -m $username || { printf "\n\nInstall failed.\n"; exit 1; }
 fi
-
-
-userDir=$(eval echo "~$username")
 
 # First we make our directories
 tput setaf 8
 printf '%s\n' "  - Making app-dir (/bin/luxcena-neo)..."
 tput sgr0
+userDir=$(eval echo "~$username")
 sudo mkdir -p "$userDir/install" || { printf "\n\nInstall failed.\n"; exit 1; }
 sudo chown $username:$username "$userDir/install"
 sudo mkdir -p "$userDir/install/src" || { printf "\n\nInstall failed.\n"; exit 1; }
