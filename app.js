@@ -7,7 +7,7 @@ let io = require("socket.io").listen(server);
 
 // Firstly we set up all globals, check that the usrData dir exists, if not, we run the setup
 let srcDir = __dirname;
-let installDir = "/home/pi/luxcena-neo-install/"
+let installDir = "/home/lux-neo/install/"
 if (process.argv.length >= 3) { installDir = process.argv[2]; }
 let dataDir = installDir + "/userdata/";
 if (!fse.existsSync(dataDir)) { throw new Error("APPDIR not found! Exiting..."); }
