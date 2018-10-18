@@ -11,7 +11,7 @@ To install on a Raspberry pi, make sure you are using the "pi" user.
 ```
 git clone https://github.com/JakobST1n/Luxcena-Neo
 cd luxcena-neo
-./bin/install.sh
+sudo ./bin/install.sh
 ```
 ## Issues
-*PLEASE NOTE THAT IT DOES NOT WORK WHITOUT A LOT OF TWEAKING. FEEL FREE TO GIVE IT A SHOT, BUT WE ARE WORKING HARD ON MAKING IT WASY TO USE!*
+*PLEASE NOTE THAT IT DOES NOT WORK WHITOUT A LOT OF TWEAKING. FEEL FREE TO GIVE IT A SHOT, BUT I AM WORKING HARD ON MAKING IT EASY TO USE!*
