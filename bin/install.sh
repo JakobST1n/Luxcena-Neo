@@ -6,8 +6,7 @@ tput sgr0
 printf '\e[93m%s\e[0m\n\n' "---------------------"
 
 LOG="/tmp/luxcena-neo.install.log"
-touch $LOG
-echo "Starting Luxcena-neo installer..." &>> $LOG
+echo "Starting Luxcena-neo installer..." > $LOG
 
 if [ "$EUID" -ne 0 ]; then
     echo "You need to run this script as root."
