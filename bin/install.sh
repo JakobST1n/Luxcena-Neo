@@ -105,6 +105,7 @@ tput sgr0
 # Create user 'luxcena-neo'
 tput setaf 8
 printf '%s\n' "  - Creating user 'lux-neo'..."
+tput sgr0
 username="lux-neo"
 sudo egrep "^$username" /etc/passwd >/dev/null
 if [ $? -eq 0 ]; then
@@ -115,27 +116,27 @@ else
 	sudo useradd -m $username
 	[ $? -eq 0 ] && echo "User has been added to system!" || { printf "\n\nInstall failed.\n"; exit 1; }
 fi
-tput sgr0
 
-# Change to the new user
-tput setaf 8
-printf '%s\n' "  - Changing to new user..."
-sudo su lux-neo
-tput sgr0
+
+userDir=$(eval echo "~$username")
 
 # First we make our directories
 tput setaf 8
 printf '%s\n' "  - Making app-dir (/bin/luxcena-neo)..."
 tput sgr0
-mkdir ~/install || { printf "\n\nInstall failed.\n"; exit 1; }
-mkdir ~/install/src || { printf "\n\nInstall failed.\n"; exit 1; }
-mkdir ~/install/userdata || { printf "\n\nInstall failed.\n"; exit 1; }
+sudo mkdir -p "$userDir/install" || { printf "\n\nInstall failed.\n"; exit 1; }
+sudo chown $username:$username "$userDir/install"
+sudo mkdir -p "$userDir/install/src" || { printf "\n\nInstall failed.\n"; exit 1; }
+sudo chown $username:$username "$userDir/install/src"
+sudo mkdir -p "$userDir/install/userdata" || { printf "\n\nInstall failed.\n"; exit 1; }
+sudo chown $username:$username "$userDir/install/userdata"
 
 # Third we copy the source into the correct swap-folder
 tput setaf 8
 printf '%s\n' "  - Copying sourceCode to app-dir..."
 tput sgr0
-cp -r . ~/install/src || { printf "\n\nInstall failed.\n"; exit 1; }
+sudo cp -r . "$userDir/install/src" || { printf "\n\nInstall failed.\n"; exit 1; }
+sudo chown -R $username:$username "$userDir/install/src"
 
 # fourth we run npm i
 tput setaf 8
@@ -143,7 +144,7 @@ printf '%s\n' "  - Running npm i..."
 tput sgr0
 tput sc
 export NODE_ENV=production || { printf "\n\nInstall failed.\n"; exit 1; }
-npm --prefix ~/install/src install ~/install/src --only=production || { printf "\n\nInstall failed.\n"; exit 1; } # This is probably a bit overkill to have --only=... but better safe than sorry?
+runuser -l $username -c "npm --prefix ~/install/src install ~/install/src --only=production || { printf "\n\nInstall failed.\n"; exit 1; }" # This is probably a bit overkill to have --only=... but better safe than sorry?
 tput rc; tput ed
 
 # Fifth we add the service files
