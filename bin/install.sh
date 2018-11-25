@@ -134,6 +134,14 @@ export NODE_ENV=production &>> $LOG || die
 runuser -l $username -c 'npm --prefix ~/install/src install ~/install/src --only=production' &>> $LOG || die # This is probably a bit overkill to have --only=... but better safe than sorry?
 tput rc; tput ed
 
+# fourth we copy the cli to our bin folder
+tput setaf 8
+printf '%s\n' "  - Adding cli-script..."
+tput sgr0
+cp bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh &>> $LOG || die
+ln -sf /usr/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo &>> $LOG || die
+tput rc; tput ed
+
 # Fifth we add the service files
 tput setaf 8
 printf '%s\n' "  - Adding service-file to systemd..."
@@ -143,3 +151,4 @@ systemctl daemon-reload &>> $LOG || die
 
 # Installation is done!
 printf '\n\e[5m%s\e[0m\n' "🎉Luxcena-Neo is now installed🎉"
+printf 'You can now delete this folder'
