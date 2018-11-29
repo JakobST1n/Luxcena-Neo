@@ -2,7 +2,7 @@
 Description=Luxcena Neo
 
 [Service]
-ExecStart=/home/lux-neo/install/src/bin/luxcena-neo.sh
+ExecStart=/home/lux-neo/src/bin/luxcena-neo.sh
 Restart=always
 RestartSec=10
 
