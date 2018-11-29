@@ -35,7 +35,7 @@ class Strip:
 
         # Setup matrix
         try:
-            pixelMatrix = new Matrix(stripConf["matrix"], self.segments)
+            pixelMatrix = Matrix(stripConf["matrix"], self.segments)
         except:
             print("Something went wrong while setting up your self-defined matrix.")
 
