@@ -104,7 +104,7 @@ elif [ "$action" == "uninstall" ]; then
     fi
 
 elif [ "$action" == "conf" ]; then
-    nano /home/lux-neo/luxcena-neo-install/userdata/config/strip.json
+    nano /home/lux-neo/userdata/config/strip.json
 
 elif [ "$action" == "start" ]; then
     systemctl start luxcena-neo
