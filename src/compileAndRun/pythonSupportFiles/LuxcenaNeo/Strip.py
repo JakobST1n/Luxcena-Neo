@@ -39,55 +39,55 @@ class Strip:
         except:
             print("Something went wrong while setting up your self-defined matrix.")
 
-	def show(self):
-		"""Update the display with the data from the LED buffer."""
-		self.strip.show()
+    def show(self):
+        """Update the display with the data from the LED buffer."""
+        self.strip.show()
 
-	def setPixelColor(self, n, color):
-		"""Set LED at position n to the provided 24-bit color value (in RGB order).
-		"""
-		self.strip.setPixelColor(n, color)
+    def setPixelColor(self, n, color):
+        """Set LED at position n to the provided 24-bit color value (in RGB order).
+        """
+        self.strip.setPixelColor(n, color)
 
-	def setPixelColorRGB(self, n, red, green, blue, white = 0):
-		"""Set LED at position n to the provided red, green, and blue color.
-		Each color component should be a value from 0 to 255 (where 0 is the
-		lowest intensity and 255 is the highest intensity).
-		"""
-		self.strip.setPixelColor(n, Color(red, green, blue, white))
+    def setPixelColorRGB(self, n, red, green, blue, white = 0):
+        """Set LED at position n to the provided red, green, and blue color.
+        Each color component should be a value from 0 to 255 (where 0 is the
+        lowest intensity and 255 is the highest intensity).
+        """
+        self.strip.setPixelColor(n, Color(red, green, blue, white))
 
-	def setBrightness(self, brightness):
-		"""Scale each LED in the buffer by the provided brightness.  A brightness
-		of 0 is the darkest and 255 is the brightest.
-		"""
-		self.strip.setBrightness(brightness)
+    def setBrightness(self, brightness):
+        """Scale each LED in the buffer by the provided brightness.  A brightness
+        of 0 is the darkest and 255 is the brightest.
+        """
+        self.strip.setBrightness(brightness)
 
-	def getBrightness(self):
-		"""Get the brightness value for each LED in the buffer. A brightness
-		of 0 is the darkest and 255 is the brightest.
-		"""
-		return self.strip.getBrightness()
+    def getBrightness(self):
+        """Get the brightness value for each LED in the buffer. A brightness
+        of 0 is the darkest and 255 is the brightest.
+        """
+        return self.strip.getBrightness()
 
-	def getPixels(self):
-		"""Return an object which allows access to the LED display data as if
-		it were a sequence of 24-bit RGB values.
-		"""
-		return self.strip.getPixels()
+    def getPixels(self):
+        """Return an object which allows access to the LED display data as if
+        it were a sequence of 24-bit RGB values.
+        """
+        return self.strip.getPixels()
 
-	def numPixels(self):
-		"""Return the number of pixels in the display."""
-		return self.LED_COUNT
+    def numPixels(self):
+        """Return the number of pixels in the display."""
+        return self.LED_COUNT
 
-	def getPixelColor(self, n):
-		"""Get the 24-bit RGB color value for the LED at position n."""
-		return self.strip.getPixelColor(n)
+    def getPixelColor(self, n):
+        """Get the 24-bit RGB color value for the LED at position n."""
+        return self.strip.getPixelColor(n)
 
 
 def Color(red, green, blue, white = 0):
-	"""Convert the provided red, green, blue color to a 24-bit color value.
-	Each color component should be a value 0-255 where 0 is the lowest intensity
-	and 255 is the highest intensity.
-	"""
-	return (white << 24) | (red << 16)| (green << 8) | blue
+    """Convert the provided red, green, blue color to a 24-bit color value.
+    Each color component should be a value 0-255 where 0 is the lowest intensity
+    and 255 is the highest intensity.
+    """
+    return (white << 24) | (red << 16)| (green << 8) | blue
 
 def hexColor(value):
     value = value.lstrip('#')
