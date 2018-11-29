@@ -111,19 +111,19 @@ tput setaf 8
 printf '%s\n' "  - Making app-dir (/bin/luxcena-neo)..."
 tput sgr0
 userDir=$(eval echo "~$username")
-mkdir -p "$userDir/install" &>> $LOG || die
-chown $username:$username "$userDir/install" &>> $LOG || die
-mkdir -p "$userDir/install/src" &>> $LOG || die
-chown $username:$username "$userDir/install/src" &>> $LOG || die
-mkdir -p "$userDir/install/userdata" &>> $LOG || die
-chown $username:$username "$userDir/install/userdata" &>> $LOG || die
+#mkdir -p "$userDir/install" &>> $LOG || die
+#chown $username:$username "$userDir/install" &>> $LOG || die
+mkdir -p "$userDir/src" &>> $LOG || die
+chown $username:$username "$userDir/src" &>> $LOG || die
+mkdir -p "$userDir/userdata" &>> $LOG || die
+chown $username:$username "$userDir/userdata" &>> $LOG || die
 
 # Third we copy the source into the correct swap-folder
 tput setaf 8
 printf '%s\n' "  - Copying sourceCode to app-dir..."
 tput sgr0
-cp -r . "$userDir/install/src" &>> $LOG || die
-chown -R $username:$username "$userDir/install/src" &>> $LOG || die
+cp -r . "$userDir/src" &>> $LOG || die
+chown -R $username:$username "$userDir/src" &>> $LOG || die
 
 # fourth we run npm i
 tput setaf 8
@@ -131,7 +131,7 @@ printf '%s\n' "  - Running npm i..."
 tput sgr0
 tput sc
 export NODE_ENV=production &>> $LOG || die
-runuser -l $username -c 'npm --prefix ~/install/src install ~/install/src --only=production' &>> $LOG || die # This is probably a bit overkill to have --only=... but better safe than sorry?
+runuser -l $username -c 'npm --prefix ~/src install ~/src --only=production' &>> $LOG || die # This is probably a bit overkill to have --only=... but better safe than sorry?
 tput rc; tput ed
 
 # fourth we copy the cli to our bin folder
@@ -139,7 +139,7 @@ tput setaf 8
 printf '%s\n' "  - Adding cli-script..."
 tput sgr0
 cp bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh &>> $LOG || die
-ln -sf /usr/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo &>> $LOG || die
+ln -sf /usr/bin/luxcena-neo-cli.sh /usr/bin/lux-neo &>> $LOG || die
 tput rc; tput ed
 
 # Fifth we add the service files

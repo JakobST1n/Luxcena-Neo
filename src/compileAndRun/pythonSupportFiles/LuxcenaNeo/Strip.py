@@ -1,5 +1,10 @@
 from neopixel import *
 
+class Matrix:
+
+    def __init__(self, matrix, segments):
+        self.t = []
+
 class Strip:
 
     def __init__(self, stripConf):
@@ -8,10 +13,10 @@ class Strip:
 
         self.LED_FREQ_HZ = stripConf["led_freq_hz"]  # LED signal frequency in hertz (usually 800khz)
         self.LED_CHANNEL = stripConf["led_channel"]  # Set to '1' for GPIOs 13, 19, 41, 45, 53
-        self.LED_INVERT = stripConf["led_invert"]    # True to invert the signal, (when using NPN transistor level shift)
-        self.LED_PIN = stripConf["led_pin"]          # 18 uses PWM, 10 uses SPI /dev/spidev0.0
-        self.LED_DMA = stripConf["led_dma"]          # DMA channel for generating the signal, on the newer ones, try 10
-        self.LED_COUNT = sum(self.SEGMENTS)          # Number of LEDs in strip
+        self.LED_INVERT  = stripConf["led_invert"]   # True to invert the signal, (when using NPN transistor level shift)
+        self.LED_PIN     = stripConf["led_pin"]      # 18 uses PWM, 10 uses SPI /dev/spidev0.0
+        self.LED_DMA     = stripConf["led_dma"]      # DMA channel for generating the signal, on the newer ones, try 10
+        self.LED_COUNT   = sum(self.SEGMENTS)        # Number of LEDs in strip
 
 
         self.LED_BRIGHTNESS = 255
@@ -27,6 +32,12 @@ class Strip:
         )
 
         self.strip.begin()
+
+        # Setup matrix
+        try:
+            pixelMatrix = new Matrix(stripConf["matrix"], self.segments)
+        except:
+            print("Something went wrong while setting up your self-defined matrix.")
 
 	def show(self):
 		"""Update the display with the data from the LED buffer."""
@@ -77,3 +88,9 @@ def Color(red, green, blue, white = 0):
 	and 255 is the highest intensity.
 	"""
 	return (white << 24) | (red << 16)| (green << 8) | blue
+
+def hexColor(value):
+    value = value.lstrip('#')
+    lv = len(value)
+    rgb = tuple(int(value[i:i+lv/3], 16) for i in range(0, lv, lv/3))
+    return (0 << 24) | (rgb[1] << 16) | (rgb[0] << 8) | rgb[2]

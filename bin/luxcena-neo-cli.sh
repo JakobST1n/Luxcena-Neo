@@ -71,7 +71,7 @@ if [ "$action" == "update" ]; then
   runuser -l 'lux-neo' -c 'npm i --only=production'
   cd $oldDir
   printf "Update complete, run these commands to finish it completly:\n"
-  printf "sudo /home/lux-neo/luxcena-neo-install/bin/post-update.sh\n"
+  printf "sudo /home/lux-neo/install/src/bin/post-update.sh\n"
   printf "sudo systemctl luxcena-neo start\n"
   systemctl start luxcena-neo
 
@@ -100,7 +100,11 @@ elif [ "$action" == "uninstall" ]; then
         printf "Well, some dependencies still exists. Those are:\n"
         printf " - rpi_ws281x-library\n"
         printf " - packages (nodejs scons python-dev swig)\n"
+        tput sgr0
     fi
+
+elif [ "$action" == "conf" ]; then
+    nano /home/lux-neo/luxcena-neo-install/userdata/config/strip.json
 
 elif [ "$action" == "start" ]; then
     systemctl start luxcena-neo
