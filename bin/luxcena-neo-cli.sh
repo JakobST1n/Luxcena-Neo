@@ -66,9 +66,11 @@ if [ "$action" == "update" ]; then
   systemctl stop lxucena-neo
   runuser -l 'lux-neo' -c 'git -C ~/src pull'
   runuser -l 'lux-neo' -c 'export NODE_ENV=production; npm --prefix ~/src install ~/src --only=production'
-  printf "Update complete, run these commands to finish it completly:\n"
-  printf "sudo /home/lux-neo/src/bin/post-update.sh\n"
-  printf "sudo systemctl luxcena-neo start\n"
+  cp /home/lux-neo/src/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh
+  printf "Update complete.\n"
+  #printf "Update complete, run these commands to finish it completly:\n"
+  #printf "sudo /home/lux-neo/src/bin/post-update.sh\n"
+  #printf "sudo systemctl luxcena-neo start\n"
   systemctl start luxcena-neo
 
 elif [ "$action" == "uninstall" ]; then
@@ -85,12 +87,12 @@ elif [ "$action" == "uninstall" ]; then
         deluser lux-neo
         rm -rf /home/lux-neo
         rm /etc/systemd/system/luxcena-neo.service
+        rm /usr/bin/luxcena-neo.sh
+        rm /usr/bin/lux-neo
+
 
         tput setaf 2
-        printf "\nEverything should now be gone. To remove the last piece, enter this command:\n"
-        tput sgr0
-        tput smso
-        printf "sudo rm /bin/luxcena-neo\n\n"
+        printf "\nEverything should now be gone.\n"
         tput sgr0
         tput setaf 8
         printf "Well, some dependencies still exists. Those are:\n"
