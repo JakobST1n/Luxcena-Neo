@@ -7,7 +7,7 @@ let io = require("socket.io").listen(server);
 
 // Firstly we set up all globals, check that the usrData dir exists, if not, we run the setup
 let srcDir = __dirname;
-let installDir = "/home/lux-neo/install/"
+let installDir = "/home/lux-neo/"
 if (process.argv.length >= 3) { installDir = process.argv[2]; }
 let dataDir = installDir + "/userdata/";
 if (!fse.existsSync(dataDir)) { throw new Error("APPDIR not found! Exiting..."); }
@@ -55,21 +55,22 @@ fse.ensureDirSync(dataDir + "/usrCode/");
 fse.ensureDirSync(dataDir + "/remoteCode/");
 // Generate config-files
 if (!fse.existsSync(dataDir + "/config/versionChecker.json")) {
-    fse.writeJsonSync(dataDir + "/config/versionChecker.json", {
+    fse.writeFileSync(dataDir + "/config/versionChecker.json", JSON.stringify({
       "branch": "dev",
       "checkInterval": 5
-    })
+    }, null, 4));
 }
 if (!fse.existsSync(dataDir + "/config/strip.json")) {
-    fse.writeJsonSync(dataDir + "/config/strip.json", {
-        "segments": [9, 8, 8, 8, 8, 8, 4],
+    fse.writeFileSync(dataDir + "/config/strip.json", JSON.stringify({
+        "segments": [],
+        "matrix": [],
         "segmentConfiguration": "snake",
         "led_pin": 18,
         "led_freq_hz": 800000,
         "led_dma": 10,
         "led_invert": false,
         "led_channel": 0
-    })
+    }, null, 4));
 }
 
 
@@ -79,6 +80,8 @@ let neoRuntime = require("./src/neoRuntime")(dataDir);
 
 // Setup static assets
 app.use(express.static("public/assets"));
+// Serve docs
+app.use("/docs", express.static("docs/_book/"));
 // Gave up using webpack to compile monaco, therefore, loading the already-compiled code. Probably the slowest way possible, but so it goes.
 app.use("/monaco-editor", express.static("node_modules/monaco-editor/"));
 // Setup all our custom middleware

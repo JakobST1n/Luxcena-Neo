@@ -56,7 +56,7 @@ def main():
     if ("LuxcenaNeo" in dir(moduleSc)):
         moduleSc.LuxcenaNeo.strip = moduleSc.LuxcenaNeo.Strip(stripConf)
     elif ("neo" in dir(moduleSc)):
-        moduleSc.neo.strip = moduleSc.neo.Strip(segments, segmentConfiguration)
+        moduleSc.neo.strip = moduleSc.neo.Strip(stripConf)
     else:
         raise Exception("Neither LuxcenaNeo nor neo found in script, check docs!")
 
