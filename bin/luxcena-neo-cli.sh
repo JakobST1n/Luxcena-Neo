@@ -106,6 +106,10 @@ elif [ "$action" == "start" ]; then
     systemctl start luxcena-neo
 elif [ "$action" == "stop" ]; then
     systemctl stop luxcena-neo
+elif [ "$action" == "status" ]; then
+    printf '\e[93m%s\e[0m\n' "---Service status------------------"
+    systemctl status luxcena-neo
+    printf '\e[93m%s\e[0m\n' "-----------------------------------"
 else
     usage
 fi
