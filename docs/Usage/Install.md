@@ -30,3 +30,6 @@ $ luxcena-neo start
 
 ## Troubleshooting
 We haven't encountered any troubles yet, but once we do, we will post fix'es here.
+
+---
+You should now be all set to [configuring luxcena-neo](/Usage/Configuration.md).

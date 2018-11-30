@@ -76,3 +76,6 @@ This should not be touched, unless you are using a inverting level converter.
 
 ## led_channel
 Leave this as default unless you know what you are doing.
+
+---
+Now you might want to take a look at the [command line interface](/Usage/CLI.md).
