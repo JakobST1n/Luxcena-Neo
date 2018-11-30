@@ -80,6 +80,8 @@ let neoRuntime = require("./src/neoRuntime")(dataDir);
 
 // Setup static assets
 app.use(express.static("public/assets"));
+// Serve docs
+app.use("/docs", express.static("docs/_book/"));
 // Gave up using webpack to compile monaco, therefore, loading the already-compiled code. Probably the slowest way possible, but so it goes.
 app.use("/monaco-editor", express.static("node_modules/monaco-editor/"));
 // Setup all our custom middleware
