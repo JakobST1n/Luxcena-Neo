@@ -1,9 +1,5 @@
 from neopixel import *
-
-class Matrix:
-
-    def __init__(self, matrix, segments):
-        self.t = []
+from Matrix import Matrix, getSegmentRange
 
 class Strip:
 
@@ -35,7 +31,7 @@ class Strip:
 
         # Setup matrix
         try:
-            pixelMatrix = Matrix(stripConf["matrix"], self.segments)
+            pixelMatrix = Matrix(self.segments, stripConf["matrix"])
         except:
             print("Something went wrong while setting up your self-defined matrix.")
 
@@ -48,12 +44,31 @@ class Strip:
         """
         self.strip.setPixelColor(n, color)
 
+    def setPixelColorXY(self, x, y, color):
+        """Set LED at position n to the provided 24-bit color value (in RGB order).
+        """
+        self.strip.setPixelColor(self.pixelMatrix.get(x, y), color)
+
     def setPixelColorRGB(self, n, red, green, blue, white = 0):
         """Set LED at position n to the provided red, green, and blue color.
         Each color component should be a value from 0 to 255 (where 0 is the
         lowest intensity and 255 is the highest intensity).
         """
         self.strip.setPixelColor(n, Color(red, green, blue, white))
+
+    def setPixelColorXYRGB(self, x, y, red, green, blue, white = 0):
+        """Set LED at position n to the provided red, green, and blue color.
+        Each color component should be a value from 0 to 255 (where 0 is the
+        lowest intensity and 255 is the highest intensity).
+        """
+        self.strip.setPixelColor(self.pixelMatrix.get(x, y), Color(red, green, blue, white))
+
+    def setSegmentColorRGB(self, segment, red, green, blue, white = 0):
+        """Set a whole segment to the provided red, green and blue color.
+        Each color component should be a value from 0 to 255 (where 0 is the
+        lowest intensity and 255 is the highest intensity)."""
+        for n in getSegmentRange(self.segments, segment):
+            self.strip.setPixelColor(n, Color(red, green, blue, white))
 
     def setBrightness(self, brightness):
         """Scale each LED in the buffer by the provided brightness.  A brightness

@@ -189,6 +189,38 @@
                 <span>
             
                     
+                    Scripting
+            
+                </span>
+            
+
+            
+            <ul class="articles">
+                
+    
+        <li class="chapter " data-level="1.3.1" data-path="../Scripting/SupportLib/">
+            
+                <a href="../Scripting/SupportLib/">
+            
+                    
+                    Support Library
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+            </ul>
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" >
+            
+                <span>
+            
+                    
                     Contributing
             
                 </span>
@@ -198,7 +230,7 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="1.3.1" >
+        <li class="chapter " data-level="1.4.1" >
             
                 <span>
             
@@ -212,7 +244,7 @@
             <ul class="articles">
                 
     
-        <li class="chapter " data-level="1.3.1.1" data-path="../Contributing/Modules/CompileAndRun.html">
+        <li class="chapter " data-level="1.4.1.1" data-path="../Contributing/Modules/CompileAndRun.html">
             
                 <a href="../Contributing/Modules/CompileAndRun.html">
             
@@ -309,12 +341,13 @@
 <p>This is a two dimensonal array, used to arrange the segments in a matrix of your likings. Here you enter the segment-number to represent them. In the example above, all the segments are in one line. If you want to have them in a square, it could look like this:</p>
 <pre><code class="lang-json"><span class="hljs-string">&quot;segments&quot;</span>: [<span class="hljs-number">10</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>],
 <span class="hljs-string">&quot;matrix&quot;</span>: [
-    [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">2</span>],
-    [<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>],
-    [<span class="hljs-number">6</span>, <span class="hljs-number">7</span>, <span class="hljs-number">8</span>]
+    [[<span class="hljs-number">0</span>, <span class="hljs-literal">false</span>], [<span class="hljs-number">1</span>, <span class="hljs-literal">true</span>], [<span class="hljs-number">2</span>, <span class="hljs-literal">false</span>]],
+    [[<span class="hljs-number">3</span>, <span class="hljs-literal">true</span>], [<span class="hljs-number">4</span>, <span class="hljs-literal">false</span>], [<span class="hljs-number">5</span>, <span class="hljs-literal">true</span>]],
+    [[<span class="hljs-number">6</span>, <span class="hljs-literal">false</span>], [<span class="hljs-number">7</span>, <span class="hljs-literal">true</span>], [<span class="hljs-number">8</span>, <span class="hljs-literal">false</span>]]
 ]
 </code></pre>
-<p><div class="alert alert-danger hints-alert"><div class="hints-icon"><i class="fa fa-exclamation-circle"></i></div><div class="hints-container"><p>If you don&apos;t have a reference to all the segments or something, the matrix setup will fail. And fall back to &apos;segmentsconfiguration&apos;</p>
+<p>Each entry looks is a list, with two parameters, <code>[&lt;segment_number&gt;, &lt;invert&gt;]</code>
+<div class="alert alert-danger hints-alert"><div class="hints-icon"><i class="fa fa-exclamation-circle"></i></div><div class="hints-container"><p>If you don&apos;t have a reference to all the segments or something, the matrix setup will fail. And fall back to &apos;segmentsconfiguration&apos;</p>
 </div></div></p>
 <h2 id="segmentconfiguration">segmentconfiguration</h2>
 <p>If the matrix-option is empty or badly setup. The matrix will be set up using one of these defaults:</p>
@@ -376,7 +409,7 @@ This is the dma-channel used to generate the data-stream. If you for some reason
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Configuration","level":"1.2.2","depth":2,"next":{"title":"CLI","level":"1.2.3","depth":2,"path":"Usage/CLI.md","ref":"Usage/CLI.md","articles":[]},"previous":{"title":"Install","level":"1.2.1","depth":2,"path":"Usage/Install.md","ref":"Usage/Install.md","articles":[]},"dir":"ltr"},"config":{"plugins":["code","pretty-term","hints","comment","github","emphasize","api","offline","livereload"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"emphasize":{},"offline":{},"pretty-term":{},"github":{"url":"https://github.com/jakobst1n/lucena-neo"},"livereload":{},"search":{},"hints":{"danger":"fa fa-exclamation-circle","info":"fa fa-info-circle","tip":"fa fa-mortar-board","working":"fa fa-wrench"},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"code":{"copyButtons":true},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"api":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"comment":{"highlightCommented":true}},"theme":"default","author":"JakobST1n","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Luxcena-Neo wiki","gitbook":"*"},"file":{"path":"Usage/Configuration.md","mtime":"2018-11-30T10:22:27.709Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-11-30T10:16:51.116Z"},"basePath":"..","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Configuration","level":"1.2.2","depth":2,"next":{"title":"CLI","level":"1.2.3","depth":2,"path":"Usage/CLI.md","ref":"Usage/CLI.md","articles":[]},"previous":{"title":"Install","level":"1.2.1","depth":2,"path":"Usage/Install.md","ref":"Usage/Install.md","articles":[]},"dir":"ltr"},"config":{"plugins":["code","pretty-term","hints","comment","github","emphasize","api","offline","livereload"],"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"pluginsConfig":{"emphasize":{},"offline":{},"pretty-term":{},"github":{"url":"https://github.com/jakobst1n/luxcena-neo"},"livereload":{},"search":{},"hints":{"danger":"fa fa-exclamation-circle","info":"fa fa-info-circle","tip":"fa fa-mortar-board","working":"fa fa-wrench"},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"code":{"copyButtons":true},"fontsettings":{"theme":"white","family":"sans","size":2},"highlight":{},"api":{},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false},"comment":{"highlightCommented":true}},"theme":"default","author":"JakobST1n","pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"variables":{},"title":"Luxcena-Neo wiki","gitbook":"*"},"file":{"path":"Usage/Configuration.md","mtime":"2018-11-30T10:47:07.758Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-11-30T22:53:52.196Z"},"basePath":"..","book":{"language":""}});
         });
     </script>
 </div>

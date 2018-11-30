@@ -4,7 +4,7 @@
     "plugins": ["code", "pretty-term", "hints", "comment", "github", "emphasize", "api", "offline"],
     "pluginsConfig": {
         "github": {
-            "url": "https://github.com/jakobst1n/lucena-neo"
+            "url": "https://github.com/jakobst1n/luxcena-neo"
         }
     }
 }

@@ -43,11 +43,12 @@ This is a two dimensonal array, used to arrange the segments in a matrix of your
 ```json
 "segments": [10, 10, 10, 10, 10, 10, 10, 10, 10],
 "matrix": [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8]
+    [[0, false], [1, true], [2, false]],
+    [[3, true], [4, false], [5, true]],
+    [[6, false], [7, true], [8, false]]
 ]
 ```
+Each entry looks is a list, with two parameters, `[<segment_number>, <invert>]`
 {% hint style='danger' %}
 If you don't have a reference to all the segments or something, the matrix setup will fail. And fall back to 'segmentsconfiguration'
 {% endhint %}
