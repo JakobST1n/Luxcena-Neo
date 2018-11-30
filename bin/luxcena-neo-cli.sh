@@ -64,12 +64,8 @@ if [ "$action" == "update" ]; then
   fi
 
   systemctl stop lxucena-neo
-  oldDir=$PWD
-  cd /home/lux-neo/src
-  runuser -l 'lux-neo' -c 'git pull'
-  runuser -l 'lux-neo' -c 'export NODE_ENV=production'
-  runuser -l 'lux-neo' -c 'npm i --only=production'
-  cd $oldDir
+  runuser -l 'lux-neo' -c 'git -C ~/src pull'
+  runuser -l 'lux-neo' -c 'export NODE_ENV=production; npm --prefix ~/src install ~/src --only=production'
   printf "Update complete, run these commands to finish it completly:\n"
   printf "sudo /home/lux-neo/src/bin/post-update.sh\n"
   printf "sudo systemctl luxcena-neo start\n"
