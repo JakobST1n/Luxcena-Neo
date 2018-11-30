@@ -149,8 +149,11 @@ module.exports = `
     <li><a class="subheader">Settings</a></li>
     <li><a class="waves-effect" href="strip_setup"><i class="material-icons">straighten</i> Strip setup</a></li>
     <li><a class="waves-effect" href="/settings"><i class="material-icons">settings</i> Settings</a></li>
+    <li><div class="divider"></div></li>
+    <li><a class="waves-effect" href="/docs"><i class="material-icons">book</i> Docs</a></li>
 </ul>
 `;
+
 
 /***/ }),
 /* 3 */
