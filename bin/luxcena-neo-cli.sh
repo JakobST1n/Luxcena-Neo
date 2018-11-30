@@ -63,7 +63,7 @@ if [ "$action" == "update" ]; then
       exit 1
   fi
 
-  systemctl stop lxucena-neo
+  systemctl stop luxcena-neo
   runuser -l 'lux-neo' -c 'git -C ~/src pull'
   runuser -l 'lux-neo' -c 'export NODE_ENV=production; npm --prefix ~/src install ~/src --only=production'
   cp /home/lux-neo/src/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh
