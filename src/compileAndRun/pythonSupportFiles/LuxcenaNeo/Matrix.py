@@ -37,6 +37,14 @@ class Matrix:
     def get(self, x, y):
         """ Return the value of a place in the matrix given x and y coordinates """
         return self.matrix[y][x]
+    
+    def dump(self):
+        for y in self.matrix:
+            thisYLine = ""
+            for x in y:
+                thisYLine += str(x) + ( ' ' * (5 - len(str(x))) )
+            print(thisYLine)
+
 
 if __name__ == "__main__":
     testMatrix = Matrix(
