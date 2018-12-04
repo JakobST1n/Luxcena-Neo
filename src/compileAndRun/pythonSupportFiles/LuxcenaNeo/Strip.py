@@ -29,9 +29,17 @@ class Strip:
 
         self.strip.begin()
 
+        # Blank out all the LEDs
+        i = 0
+        while True:
+            self.strip.setPixelColor(i, 0)
+            i += 1
+        self.strip.show()
+
         # Setup matrix
+        pixelMatrix = Matrix(self.segments, stripConf["matrix"])
         try:
-            pixelMatrix = Matrix(self.segments, stripConf["matrix"])
+            print("TESTING")
         except:
             print("Something went wrong while setting up your self-defined matrix.")
 
