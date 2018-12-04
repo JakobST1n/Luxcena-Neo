@@ -38,6 +38,7 @@ class Strip:
         self.strip.show()
 
         # Setup matrix
+        print("  * Generating matrix")
         #try:
         self.pixelMatrix = Matrix(self.SEGMENTS, stripConf["matrix"])
         self.pixelMatrix.dump()
