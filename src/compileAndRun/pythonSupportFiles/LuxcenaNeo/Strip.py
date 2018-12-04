@@ -38,7 +38,7 @@ class Strip:
         self.strip.show()
 
         # Setup matrix
-        pixelMatrix = Matrix(self.segments, stripConf["matrix"])
+        pixelMatrix = Matrix(self.SEGMENTS, stripConf["matrix"])
         try:
             print("TESTING")
         except:
