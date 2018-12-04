@@ -34,6 +34,7 @@ class Strip:
         while True:
             self.strip.setPixelColor(i, 0)
             i += 1
+            if (i > self.LED_COUNT): break
         self.strip.show()
 
         # Setup matrix
