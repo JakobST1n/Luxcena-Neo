@@ -151,13 +151,13 @@ elif [ "$action" == "log" ]; then
 elif [ "$action" == "version" ] || [ "$action" == "v" ]; then
     printf "╭─────────────────────╮\n"
     printf "│ Version: Unknown    │\n"
-    printf "│ branch : $(git branch -C /home/lux-neo/src | grep \* | cut -d ' ' -f2)    │\n"
+    printf "│ branch : $(git -C /home/lux-neo/src branch | grep \* | cut -d ' ' -f2)    │\n"
     printf "╰─────────────────────╯\n\n"
 
 elif [ "$action" == "selectBranch" ]; then
     printf "Current $(git -C /home/lux-neo/src branch | grep \* | cut -d ' ' -f2)Branch \n"
     runuser -l 'lux-neo' -c "git -C ~/src checkout $2" || printf "\e[91mYou should now run \e[90m'sudo lux-neo update'\e[91m!\n"
-    
+
 else
     usage
 fi
