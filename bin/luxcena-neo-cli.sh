@@ -49,7 +49,7 @@ while getopts ":a:" o; do
 done
 shift $((OPTIND-1))
 
-printf "\e[37m> \e[4mLuxcena-\e[31mn\e[32me\e[34mo\e[37m-cli command: \e[90m'$*'.\n\n\e[0m"
+printf "\e[4mLuxcena-\e[31mn\e[32me\e[34mo\e[37m-cli. [args: \e[90m'$*'.\n\n\e[0m]"
 
 action=$1
 if [ "$action" == "update" ]; then
