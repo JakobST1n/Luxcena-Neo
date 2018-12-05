@@ -68,9 +68,6 @@ if [ "$action" == "update" ]; then
   runuser -l 'lux-neo' -c 'export NODE_ENV=production; npm --prefix ~/src install ~/src --only=production'
   cp /home/lux-neo/src/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh
   printf "Update complete.\n"
-  #printf "Update complete, run these commands to finish it completly:\n"
-  #printf "sudo /home/lux-neo/src/bin/post-update.sh\n"
-  #printf "sudo systemctl luxcena-neo start\n"
   systemctl start luxcena-neo
 
 elif [ "$action" == "uninstall" ]; then
@@ -106,12 +103,45 @@ elif [ "$action" == "conf" ]; then
 
 elif [ "$action" == "start" ]; then
     systemctl start luxcena-neo
+    if [ "$2" == "boot" ]; then
+        systemctl enable luxcena-neo
+        printf "Now starting on boot...\n"
+    printf "Luxcena-neo service started...\n"
+
 elif [ "$action" == "stop" ]; then
     systemctl stop luxcena-neo
+    if [ "$2" == "boot" ]; then
+        systemctl disable luxcena-neo
+        printf "Not longer active on boot...\n"
+    printf "Luxcena-neo service stopped...\n"
+
 elif [ "$action" == "status" ]; then
-    printf '\e[93m%s\e[0m\n' "---Service status------------------"
+    printf "╭─────────────────────╮\n"
+    printf "│ Service active: "
+    [ $(systemctl is-active lucxena-neo) -eq "active" ]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    printf "│ Starts on boot: "
+    [ $(systemctl is-enabled lucxena-neo) -eq "enabled" ] && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    printf "│ Has failed:     "
+    [ $(systemctl is-failed lucxena-neo) -eq "failed" ]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    printf "╰─────────────────────╯\n\n"
+
+    printf '\e[93m%s\e[0m\n' "━━━Service status━━━━━━━━━━━━━━━━━━"
     systemctl status luxcena-neo
-    printf '\e[93m%s\e[0m\n' "-----------------------------------"
+    printf '\e[93m%s\e[0m\n' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+elif [ "$action" == "log" ]; then
+    if [ "$2" == "sevice" ]; then
+        printf '\e[93m%s\e[0m\n' "━━━Service log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
+        tail -F -n 20 /home/lux-neo/logs/service.log
+    if [ "$2" == "app" ]; then
+        printf '\e[93m%s\e[0m\n' "━━━App log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
+        tail -F -n 20 /home/lux-neo/logs/logger.log
+
+elif [ "$action" == "version" ] || [ "$action" == "v" ]; then
+    printf "Version: Unknown\n"
+
+elif [ "$action" == "selectBranch" ]
+    printf "Current Branch \n"
 else
     usage
 fi
