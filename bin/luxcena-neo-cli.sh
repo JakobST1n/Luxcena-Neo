@@ -65,10 +65,15 @@ if [ "$action" == "update" ]; then
 
   systemctl stop luxcena-neo
   runuser -l 'lux-neo' -c 'git -C ~/src pull'
-  runuser -l 'lux-neo' -c 'export NODE_ENV=production; npm --prefix ~/src install ~/src --only=production'
+
+  if [ "$2" != "skipNode" ]; then
+      runuser -l 'lux-neo' -c 'export NODE_ENV=production; npm --prefix ~/src install ~/src --only=production'
+  fi
+
   cp /home/lux-neo/src/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh
   printf "Update complete.\n"
   systemctl start luxcena-neo
+  exit 0
 
 elif [ "$action" == "uninstall" ]; then
     tput setab 1
@@ -120,11 +125,11 @@ elif [ "$action" == "stop" ]; then
 elif [ "$action" == "status" ]; then
     printf "╭─────────────────────╮\n"
     printf "│ Service active: "
-    [[ "$(systemctl is-active lucxena-neo)" == *"active"* ]]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    [[ "$(systemctl is-active luxcena-neo)" == *"active"* ]]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
     printf "│ Starts on boot: "
-    [[ "$(systemctl is-enabled lucxena-neo)" == *"enabled"* ]] && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    [[ "$(systemctl is-enabled luxcena-neo)" == *"enabled"* ]] && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
     printf "│ Has failed:     "
-    [[ "$(systemctl is-failed lucxena-neo)" == *"failed"* ]]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    [[ "$(systemctl is-failed luxcena-neo)" == *"failed"* ]]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
     printf "╰─────────────────────╯\n\n"
 
     printf '\e[93m%s\e[0m\n' "━━━Service status━━━━━━━━━━━━━━━━━━"
