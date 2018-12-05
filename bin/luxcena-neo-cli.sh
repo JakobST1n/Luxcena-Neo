@@ -106,6 +106,7 @@ elif [ "$action" == "start" ]; then
     if [ "$2" == "boot" ]; then
         systemctl enable luxcena-neo
         printf "Now starting on boot...\n"
+    fi
     printf "Luxcena-neo service started...\n"
 
 elif [ "$action" == "stop" ]; then
@@ -113,6 +114,7 @@ elif [ "$action" == "stop" ]; then
     if [ "$2" == "boot" ]; then
         systemctl disable luxcena-neo
         printf "Not longer active on boot...\n"
+    fi
     printf "Luxcena-neo service stopped...\n"
 
 elif [ "$action" == "status" ]; then
@@ -133,14 +135,16 @@ elif [ "$action" == "log" ]; then
     if [ "$2" == "sevice" ]; then
         printf '\e[93m%s\e[0m\n' "━━━Service log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
         tail -F -n 20 /home/lux-neo/logs/service.log
+    fi
     if [ "$2" == "app" ]; then
         printf '\e[93m%s\e[0m\n' "━━━App log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
         tail -F -n 20 /home/lux-neo/logs/logger.log
+    fi
 
 elif [ "$action" == "version" ] || [ "$action" == "v" ]; then
     printf "Version: Unknown\n"
 
-elif [ "$action" == "selectBranch" ]
+elif [ "$action" == "selectBranch" ]; then
     printf "Current Branch \n"
 else
     usage
