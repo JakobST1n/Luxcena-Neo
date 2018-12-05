@@ -7,6 +7,8 @@
     * [CLI](Usage/CLI.md)
 * Scripting
     * [Support Library](Scripting\SupportLib/README.md)
+    * Examples
+        * [Strandtest](Scripting\Examples/strandtest.md)
 * Contributing
     * Modules
         * [CompileAndRun](Contributing/Modules/CompileAndRun.md)

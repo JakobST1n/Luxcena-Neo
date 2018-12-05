@@ -29,11 +29,21 @@ class Strip:
 
         self.strip.begin()
 
+        # Blank out all the LEDs
+        i = 0
+        while True:
+            self.strip.setPixelColor(i, 0)
+            i += 1
+            if (i > self.LED_COUNT): break
+        self.strip.show()
+
         # Setup matrix
-        try:
-            pixelMatrix = Matrix(self.segments, stripConf["matrix"])
-        except:
-            print("Something went wrong while setting up your self-defined matrix.")
+        print("  * Generating matrix")
+        #try:
+        self.pixelMatrix = Matrix(self.SEGMENTS, stripConf["matrix"])
+        self.pixelMatrix.dump()
+        #except:
+        #    print("Something went wrong while setting up your self-defined matrix.")
 
     def show(self):
         """Update the display with the data from the LED buffer."""
@@ -67,7 +77,7 @@ class Strip:
         """Set a whole segment to the provided red, green and blue color.
         Each color component should be a value from 0 to 255 (where 0 is the
         lowest intensity and 255 is the highest intensity)."""
-        for n in getSegmentRange(self.segments, segment):
+        for n in getSegmentRange(self.SEGMENTS, segment):
             self.strip.setPixelColor(n, Color(red, green, blue, white))
 
     def setBrightness(self, brightness):
