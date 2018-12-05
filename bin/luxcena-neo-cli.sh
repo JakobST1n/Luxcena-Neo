@@ -156,6 +156,7 @@ elif [ "$action" == "version" ] || [ "$action" == "v" ]; then
 
 elif [ "$action" == "selectBranch" ]; then
     printf "Current $(git -C /home/lux-neo/src branch | grep \* | cut -d ' ' -f2)Branch \n"
+    runuser -l 'lux-neo' -c "git -C ~/src stash"
     runuser -l 'lux-neo' -c "git -C ~/src checkout $2" || printf "\e[91mYou should now run \e[90m'sudo lux-neo update'\e[91m!\n"
 
 else
