@@ -49,6 +49,8 @@ while getopts ":a:" o; do
 done
 shift $((OPTIND-1))
 
+printf "\e[37mLuxcena-\e[31mn\e[32me\e[34mo\e[37m-cli \e[90m[args: '$*']\n\n\e[0m"
+
 action=$1
 if [ "$action" == "update" ]; then
 
@@ -65,13 +67,15 @@ if [ "$action" == "update" ]; then
 
   systemctl stop luxcena-neo
   runuser -l 'lux-neo' -c 'git -C ~/src pull'
-  runuser -l 'lux-neo' -c 'export NODE_ENV=production; npm --prefix ~/src install ~/src --only=production'
+
+  if [ "$2" != "skipNode" ]; then
+      runuser -l 'lux-neo' -c 'export NODE_ENV=production; npm --prefix ~/src install ~/src --only=production'
+  fi
+
   cp /home/lux-neo/src/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh
   printf "Update complete.\n"
-  #printf "Update complete, run these commands to finish it completly:\n"
-  #printf "sudo /home/lux-neo/src/bin/post-update.sh\n"
-  #printf "sudo systemctl luxcena-neo start\n"
   systemctl start luxcena-neo
+  exit 0
 
 elif [ "$action" == "uninstall" ]; then
     tput setab 1
@@ -106,12 +110,55 @@ elif [ "$action" == "conf" ]; then
 
 elif [ "$action" == "start" ]; then
     systemctl start luxcena-neo
+    if [ "$2" == "boot" ]; then
+        systemctl enable luxcena-neo
+        printf "Now starting on boot...\n"
+    fi
+    printf "Luxcena-neo service started...\n"
+
 elif [ "$action" == "stop" ]; then
     systemctl stop luxcena-neo
+    if [ "$2" == "boot" ]; then
+        systemctl disable luxcena-neo
+        printf "Not longer active on boot...\n"
+    fi
+    printf "Luxcena-neo service stopped...\n"
+
 elif [ "$action" == "status" ]; then
-    printf '\e[93m%s\e[0m\n' "---Service status------------------"
+    printf "╭─────────────────────╮\n"
+    printf "│ Service active: "
+    [[ "$(systemctl is-active luxcena-neo)" == *"active"* ]]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    printf "│ Starts on boot: "
+    [[ "$(systemctl is-enabled luxcena-neo)" == *"enabled"* ]] && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    printf "│ Has failed:     "
+    [[ "$(systemctl is-failed luxcena-neo)" == *"failed"* ]]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    printf "╰─────────────────────╯\n\n"
+
+    printf '\e[93m%s\e[0m\n' "━━━Service status━━━━━━━━━━━━━━━━━━"
     systemctl status luxcena-neo
-    printf '\e[93m%s\e[0m\n' "-----------------------------------"
+    printf '\e[93m%s\e[0m\n' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+elif [ "$action" == "log" ]; then
+    if [ "$2" == "service" ]; then
+        printf '\e[93m%s\e[0m\n' "━━━Service log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
+        tail -F -n 20 /home/lux-neo/logs/service.log
+    fi
+    if [ "$2" == "app" ]; then
+        printf '\e[93m%s\e[0m\n' "━━━App log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
+        tail -F -n 20 /home/lux-neo/logs/logger.log
+    fi
+
+elif [ "$action" == "version" ] || [ "$action" == "v" ]; then
+    printf "╭─────────────────────╮\n"
+    printf "│ Version: Unknown    │\n"
+    printf "│ branch : $(git -C /home/lux-neo/src branch | grep \* | cut -d ' ' -f2)    │\n"
+    printf "╰─────────────────────╯\n\n"
+
+elif [ "$action" == "selectBranch" ]; then
+    printf "Current $(git -C /home/lux-neo/src branch | grep \* | cut -d ' ' -f2)Branch \n"
+    runuser -l 'lux-neo' -c "git -C ~/src stash"
+    runuser -l 'lux-neo' -c "git -C ~/src checkout $2" || printf "\e[91mYou should now run \e[90m'sudo lux-neo update'\e[91m!\n"
+
 else
     usage
 fi
