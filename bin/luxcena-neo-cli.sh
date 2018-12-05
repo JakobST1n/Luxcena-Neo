@@ -49,7 +49,7 @@ while getopts ":a:" o; do
 done
 shift $((OPTIND-1))
 
-printf "\e[37mLuxcena-\e[31mn\e[32me\e[34mo\e[37m-cli. [args: \e[90m'$*']\n\n\e[0m"
+printf "\e[37mLuxcena-\e[31mn\e[32me\e[34mo\e[37m-cli \e[90m[args: '$*']\n\n\e[0m"
 
 action=$1
 if [ "$action" == "update" ]; then
@@ -149,10 +149,16 @@ elif [ "$action" == "log" ]; then
     fi
 
 elif [ "$action" == "version" ] || [ "$action" == "v" ]; then
-    printf "Version: Unknown\n"
+    printf "╭─────────────────────╮\n"
+    printf "│ Version: Unknown    │\n"
+    printf "│ branch : $(git branch | grep \* | cut -d ' ' -f2)    │\n"
+    printf "╰─────────────────────╯\n\n"
 
 elif [ "$action" == "selectBranch" ]; then
-    printf "Current Branch \n"
+    printf "Current $(git branch | grep \* | cut -d ' ' -f2)Branch \n"
+    runuser -l 'lux-neo' -c "git -C ~/src checkout $2"
+    printf "\e[91mYou should now run \e[90m'sudo lux-neo update'\e[91m!\n"
+
 else
     usage
 fi
