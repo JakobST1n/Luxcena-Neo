@@ -120,11 +120,11 @@ elif [ "$action" == "stop" ]; then
 elif [ "$action" == "status" ]; then
     printf "╭─────────────────────╮\n"
     printf "│ Service active: "
-    [ $(systemctl is-active lucxena-neo) -eq "active" ]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    [[ "$(systemctl is-active lucxena-neo)" == *"active"* ]]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
     printf "│ Starts on boot: "
-    [ $(systemctl is-enabled lucxena-neo) -eq "enabled" ] && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    [[ "$(systemctl is-enabled lucxena-neo)" == *"enabled"* ]] && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
     printf "│ Has failed:     "
-    [ $(systemctl is-failed lucxena-neo) -eq "failed" ]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    [[ "$(systemctl is-failed lucxena-neo)" == *"failed"* ]]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
     printf "╰─────────────────────╯\n\n"
 
     printf '\e[93m%s\e[0m\n' "━━━Service status━━━━━━━━━━━━━━━━━━"
@@ -132,7 +132,7 @@ elif [ "$action" == "status" ]; then
     printf '\e[93m%s\e[0m\n' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 elif [ "$action" == "log" ]; then
-    if [ "$2" == "sevice" ]; then
+    if [ "$2" == "service" ]; then
         printf '\e[93m%s\e[0m\n' "━━━Service log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
         tail -F -n 20 /home/lux-neo/logs/service.log
     fi
