@@ -49,16 +49,14 @@ def main():
     print ("> Loading pixel-configuration...")
     with open(config_dir + "strip.json", "r") as rawStripConf:
         stripConf = json.load(rawStripConf)
-        segments = stripConf["segments"]
-        segmentConfiguration = stripConf["segmentConfiguration"]
 
     print ("> Initializing script...")
     moduleSc = importlib.import_module("script")
 
     if ("LuxcenaNeo" in dir(moduleSc)):
-        moduleSc.LuxcenaNeo.strip = moduleSc.LuxcenaNeo.Strip(segments, segmentConfiguration)
+        moduleSc.LuxcenaNeo.strip = moduleSc.LuxcenaNeo.Strip(stripConf)
     elif ("neo" in dir(moduleSc)):
-        moduleSc.neo.strip = moduleSc.neo.Strip(segments, segmentConfiguration)
+        moduleSc.neo.strip = moduleSc.neo.Strip(stripConf)
     else:
         raise Exception("Neither LuxcenaNeo nor neo found in script, check docs!")
 

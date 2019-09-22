@@ -5,6 +5,38 @@ usage() {
     exit 1
 }
 
+function die() {
+    tput setaf 1
+    printf "\n\nInstall failed.\n"
+    printf "Check the logfile at '/tmp/lucxena-neo.install.log'.\n"
+    printf "Use this command to see the last 30 lines of the file;\n"
+    printf "    tail -n 30 /tmp/luxcena-neo.install.log"
+    tput sgr0
+    exit 1
+}
+
+function dlgYN() {
+    tput sc
+    tput setaf 4
+    printf "$1 (y/n)? "
+    while :
+    do
+        read -n 1 -p "" YNQuestionAnswer
+        if [[ $YNQuestionAnswer == "y" ]]; then
+            tput rc; tput el
+            printf ". $1?: \e[0;32mYes\e[0m\n"
+            tput sc
+            eval $2=1 # Set parameter 2 of input to the return value
+            break
+        elif [[ $YNQuestionAnswer == "n" ]]; then
+            tput rc; tput el
+            printf ". $1?: \e[0;31mNo\e[0m\n"
+            eval $2=0 # Set parameter 2 of input to the return value
+            break
+        fi
+    done
+}
+
 while getopts ":a:" o; do
     case "${o}" in
         a )
@@ -17,6 +49,8 @@ while getopts ":a:" o; do
 done
 shift $((OPTIND-1))
 
+printf "\e[37mLuxcena-\e[31mn\e[32me\e[34mo\e[37m-cli \e[90m[args: '$*']\n\n\e[0m"
+
 action=$1
 if [ "$action" == "update" ]; then
 
@@ -25,14 +59,23 @@ if [ "$action" == "update" ]; then
   tput sgr0
   printf '\e[93m%s\e[0m\n\n' "-------------------"
 
-  sudo systemctl stop lxucena-neo
-  oldDir=$PWD
-  cd ~/luxcena-neo-install
-  git pull
-  export NODE_ENV=production
-  npm i --only=production
-  cd $oldDir
-  sudo systemctl start luxcena-neo
+  if [ "$EUID" -ne 0 ]; then
+      echo "You need to run this script as root."
+      echo "Try running with 'sudo ./bin/install.sh'"
+      exit 1
+  fi
+
+  systemctl stop luxcena-neo
+  runuser -l 'lux-neo' -c 'git -C ~/src pull'
+
+  if [ "$2" != "skipNode" ]; then
+      runuser -l 'lux-neo' -c 'export NODE_ENV=production; npm --prefix ~/src install ~/src --only=production'
+  fi
+
+  cp /home/lux-neo/src/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh
+  printf "Update complete.\n"
+  systemctl start luxcena-neo
+  exit 0
 
 elif [ "$action" == "uninstall" ]; then
     tput setab 1
@@ -42,43 +85,80 @@ elif [ "$action" == "uninstall" ]; then
     tput setaf 8
     printf "By uninstalling Luxcena-Neo you will loose all you data, including your scripts.\n\n"
 
-    tput sc
-    tput setaf 4
-    printf ". Are you sure you want to uninstall (y/n)? "
-    while :
-    do
-        read -n 1 -p "" YNQuestionAnswer
-        if [[ $YNQuestionAnswer == "y" ]]; then
-            tput rc; tput el
-            printf ". Are you sure you want to uninstall? \e[0;32mYes\e[0m\n"
-            tput sc
-            sudo systemctl stop luxcena-neo || { printf "\n\nUninstall failed.\n"; exit 1; }
-            rm -rf ~/luxcena-neo-install || { printf "\n\nUninstall failed.\n"; exit 1; }
-            sudo rm /etc/systemd/system/luxcena-neo.service || { printf "\n\nUninstall failed.\n"; exit 1; }
-            tput rc; tput ed
+    dlgYN "Are you sure you want to uninstall?" res
+    if [ $res -eq 1 ]; then
+        systemctl stop luxcena-neo
+        deluser lux-neo
+        rm -rf /home/lux-neo
+        rm /etc/systemd/system/luxcena-neo.service
+        rm /usr/bin/luxcena-neo.sh
+        rm /usr/bin/lux-neo
 
-            tput setaf 2
-            printf "\nEverything should now be gone. To remove the last piece, enter this command:\n"
-            tput sgr0
-            tput smso
-            printf "sudo rm /bin/luxcena-neo\n\n"
-            tput sgr0
-            tput setaf 8
-            printf "Well, some dependencies still exists. Those are:\n"
-            printf " - rpi_ws281x-library\n"
-            printf " - packages (nodejs scons python-dev swig)\n"
-            break
-        elif [[ $YNQuestionAnswer == "n" ]]; then
-            tput rc; tput el
-            printf ". Are you sure you want to uninstall? \e[0;31mNo\e[0m\n"
-            break
-        fi
-    done
+
+        tput setaf 2
+        printf "\nEverything should now be gone.\n"
+        tput sgr0
+        tput setaf 8
+        printf "Well, some dependencies still exists. Those are:\n"
+        printf " - rpi_ws281x-library\n"
+        printf " - packages (nodejs scons python-dev swig)\n"
+        tput sgr0
+    fi
+
+elif [ "$action" == "conf" ]; then
+    nano /home/lux-neo/userdata/config/strip.json
 
 elif [ "$action" == "start" ]; then
-    sudo systemctl start luxcena-neo
+    systemctl start luxcena-neo
+    if [ "$2" == "boot" ]; then
+        systemctl enable luxcena-neo
+        printf "Now starting on boot...\n"
+    fi
+    printf "Luxcena-neo service started...\n"
+
 elif [ "$action" == "stop" ]; then
-    sudo systemctl stop luxcena-neo
+    systemctl stop luxcena-neo
+    if [ "$2" == "boot" ]; then
+        systemctl disable luxcena-neo
+        printf "Not longer active on boot...\n"
+    fi
+    printf "Luxcena-neo service stopped...\n"
+
+elif [ "$action" == "status" ]; then
+    printf "╭─────────────────────╮\n"
+    printf "│ Service active: "
+    [[ "$(systemctl is-active luxcena-neo)" == *"active"* ]]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    printf "│ Starts on boot: "
+    [[ "$(systemctl is-enabled luxcena-neo)" == *"enabled"* ]] && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    printf "│ Has failed:     "
+    [[ "$(systemctl is-failed luxcena-neo)" == *"failed"* ]]   && printf '\e[32m%s\e[0m │\n' "yes" || printf '\e[31m%s\e[0m  │\n' "no"
+    printf "╰─────────────────────╯\n\n"
+
+    printf '\e[93m%s\e[0m\n' "━━━Service status━━━━━━━━━━━━━━━━━━"
+    systemctl status luxcena-neo
+    printf '\e[93m%s\e[0m\n' "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+elif [ "$action" == "log" ]; then
+    if [ "$2" == "service" ]; then
+        printf '\e[93m%s\e[0m\n' "━━━Service log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
+        tail -F -n 20 /home/lux-neo/logs/service.log
+    fi
+    if [ "$2" == "app" ]; then
+        printf '\e[93m%s\e[0m\n' "━━━App log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
+        tail -F -n 20 /home/lux-neo/logs/logger.log
+    fi
+
+elif [ "$action" == "version" ] || [ "$action" == "v" ]; then
+    printf "╭─────────────────────╮\n"
+    printf "│ Version: Unknown    │\n"
+    printf "│ branch : $(git -C /home/lux-neo/src branch | grep \* | cut -d ' ' -f2)    │\n"
+    printf "╰─────────────────────╯\n\n"
+
+elif [ "$action" == "selectBranch" ]; then
+    printf "Current $(git -C /home/lux-neo/src branch | grep \* | cut -d ' ' -f2)Branch \n"
+    runuser -l 'lux-neo' -c "git -C ~/src stash"
+    runuser -l 'lux-neo' -c "git -C ~/src checkout $2" || printf "\e[91mYou should now run \e[90m'sudo lux-neo update'\e[91m!\n"
+
 else
     usage
 fi
