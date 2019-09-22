@@ -11,7 +11,7 @@ class versionChecker {
 
         this.version = this.CPackageJson["version"];
         this.repoVersion = this.version;
-        this.checkFrequency = this.config["checkInterval"] * 10 * 10; // takes in hours
+        this.checkFrequency = this.config["checkInterval"] * 100 * 10 * 60 * 60; // takes in hours
         this.repoLink = this.CPackageJson["repository"]["url"];
         this.repoBranch = this.config["branch"];
 
