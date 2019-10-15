@@ -1,50 +1,75 @@
 <!DOCTYPE html>
-<html class="general">
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>Luxcena Neo</title>
+<html class="lux-neo">
 
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-alpha.4/css/materialize.min.css">
-        <link rel="stylesheet" href="/css/bundle.css" type="text/css" />
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no" />
+        <meta name="theme-color" content="#d81b60" />
+        <link rel="manifest" href="./manifest.json">
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="stylesheet" type="text/css" href="./assets/bundle.css" />
+        <!--<link rel="stylesheet" type="text/css" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" />-->
     </head>
 
-    <body id="settings">
-        <header>
-            <nav>
-                <div class="nav-wrapper">
-                    <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-                    <a href="#" class="brand-logo">Luxcena Neo</a>
+    <body id="settings" class="mdc-typography mdc-theme--background">
+
+        <aside class="mdc-theme--background mdc-drawer mdc-drawer--modal">
+            <div class="mdc-drawer__header elevation-z2">
+                <img src="./assets/img/logo/Icon-192h.png" alt="">
+                <h3 class="mdc-drawer__title mdc-theme--on-surface">Controller</h3>
+                <h6 class="mdc-drawer__subtitle mdc-theme--on-surface">Logged in as <b>Jakob</b></h6>
+            </div>
+
+            <div class="mdc-drawer__content elevation-z1 mdc-theme--on-surface"></div>
+        </aside>
+
+        <div class="mdc-drawer-scrim"></div>
+
+        <div class="mdc-drawer-app-content">
+            <header class="mdc-top-app-bar app-bar" id="app-bar">
+                <div class="mdc-top-app-bar__row">
+                    <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+                        <a href="#" class="material-icons mdc-top-app-bar__navigation-icon">menu</a>
+                        <span class="mdc-top-app-bar__title">Luxcena Neo</span>
+                    </section>
+                    <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
+                        <a id="controller-status" href="#" class="material-icons mdc-top-app-bar__action-item" aria-label="Status" alt="Status: ready">check_circle_outline</a>
+                    </section>
                 </div>
-            </nav>
-            <div id="sidenav"></div>
-        </header>
+            </header>
 
-        <main>
+            <main class="main-content" id="main-content">
+                <!--<h6 class="mdc-typography--headline6">Your scripts</h6>-->
 
-            <div class="">
-                <div class="row">
-                    <div class="col s12 m3">
-                        <div class="card">
-                            <div class="card-content">
-                                <span class="card-title">Version</span>
-                                <p>
+
+
+                <div class="mdc-top-app-bar--fixed-adjust mdc-layout-grid">
+                    <div class="mdc-layout-grid__inner">
+
+                        <div class="mdc-card status-card elevation-z2 mdc-theme--on-surface status-card__on mdc-layout-grid__cell--span-4">
+                            <div class="status-card__inner">
+                                <span class="mdc-typography--headline5">Version</span>
+
+                                <div class="">
                                     Current Version: <em>0.0.1</em> on branch <em>dev</em> <br />
                                     <span class="teal-text">New update available (<em>0.0.1-2</em> on <em>dev</em>)</span>
-                                </p>
+                                </div>
+
                             </div>
                         </div>
+
                     </div>
                 </div>
 
-            </div>
 
+            </main>
+        </div>
 
-        </main>
-
-        <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
-        <script type="text/javascript" src="/js/bundle.js"></script>
+        <script type="text/javascript" src="./assets/bundle.js"></script>
+        <!--<script type="text/javascript" src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>-->
     </body>
+
 </html>

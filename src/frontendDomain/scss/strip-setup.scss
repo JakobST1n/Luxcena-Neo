@@ -1,0 +1,277 @@
+#strip-setup {
+
+    .segment-card {
+
+        &__title {
+            margin-left: 1rem;
+            margin-top: 0.3rem;
+        }
+
+        &__body {
+            margin-left: 1rem;
+            margin-top: 0.3rem;
+        }
+
+        &__list {
+            margin-top: 0;
+            margin: 1rem;
+
+            &__segments {
+                display: inline;
+                margin-right: 10px;
+            }
+
+            & .seperator {
+                margin: 5px;
+                font-weight: lighter;
+            }
+
+            & .identificator {
+                width: 60px;
+                text-align: center;
+                font-size: 11px;
+                color: white;
+                order: 1;
+                background-color: #9c9b9b;
+                border-radius: 0 0 10px 10px;
+                //margin-top: -5px;
+                padding-bottom: 1px;
+            }
+
+            & .segment-wrapper {
+                display: inline-flex;
+                flex-direction: column;
+                margin-left: 5px;
+            }
+
+            & input {
+                text-align: center;
+                width: 30px;
+                font-size: 1rem;
+                padding: 10px 15px 10px 15px;
+                margin-top: 1rem;
+
+                border-radius: 10px 10px 0 0;
+                border: none;
+                background-color: gainsboro;
+                outline: none;
+
+                -webkit-transition: all 0.1s linear;
+                -moz-transition: all 0.1s linear;
+                -o-transition: all 0.1s linear;
+                transition: all 0.1s linear;
+
+                &:focus {
+                    background-color: gray;
+                }
+
+                &::-webkit-outer-spin-button,
+                &::-webkit-inner-spin-button {
+                    /* display: none; <- Crashes Chrome on hover */
+                    -webkit-appearance: none;
+                    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+                }
+
+            }
+
+            & button {
+                color: gray;
+                vertical-align: middle;
+                margin-top: 4px;
+            }
+        }
+    }
+
+    .matrix-card {
+
+        &__title {
+            margin-left: 1rem;
+            margin-top: 0.3rem;
+        }
+
+        &__body {
+            margin-left: 1rem;
+            margin-top: 0.3rem;
+        }
+
+        &__list {
+            margin: 1rem;
+            padding-left: 0;
+            list-style: none;
+
+            &__y__item::before {
+                content: "(";
+            }
+
+            &__y__item::after {
+                content: ")";
+            }
+
+            &__x__items {
+                display: inline;
+            }
+
+            & .seperator {
+                margin: 5px;
+                font-weight: lighter;
+            }
+
+            & input {
+                text-align: left;
+                width: 30px;
+                font-size: 1rem;
+                padding: 16px 50px 15px 20px;
+                margin-top: 1rem;
+
+                border-radius: 10px 25px 25px 10px;
+                border: none;
+                background-color: gainsboro;
+                outline:none;
+
+                -webkit-transition: all 0.2s linear;
+                -moz-transition: all 0.2s linear;
+                -o-transition: all 0.2s linear;
+                transition: all 0.2s linear;
+            }
+
+            & input.validationError {
+                box-shadow: inset 0 0 5px 0 red;
+            }
+
+            & input:focus {
+                background-color: #ababab;
+            }
+
+            & input::-webkit-outer-spin-button,
+            & input::-webkit-inner-spin-button {
+                /* display: none; <- Crashes Chrome on hover */
+                -webkit-appearance: none;
+                margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+            }
+
+            & .inverted {
+                background-color: #e4da8c;
+            }
+
+            & button {
+                color: gray;
+                vertical-align: middle;
+            }
+
+            & .matrix_element_invert_button {
+                color: gray;
+                vertical-align: middle;
+                margin-left: -48px;
+                margin-top: -5px;
+            }
+        }
+    }
+
+    .advanced-card {
+
+        &__title {
+            margin-left: 1rem;
+            margin-top: 0.3rem;
+        }
+
+        &__body {
+            margin-left: 1rem;
+            margin-top: 0.3rem;
+        }
+
+        &__list {
+            list-style: none;
+            margin-left: -10px;
+
+            &__GPIO {
+                width: 200px;
+            }
+
+            &__DMA {
+                margin-top: 10px;
+                width: 200px;
+            }
+
+            &__invert {
+                margin-top: 10px;
+            }
+
+            &__freq {
+                margin-top: 10px;
+                width: 200px;
+            }
+
+            &__led-channel {
+                margin-top: 10px;
+                width: 200px;
+            }
+        }
+    }
+
+    .matrix-output-card {
+        background-color: #3b3c3f;
+        color: white;
+
+        &__info {
+            margin-left: 1rem;
+            margin-top: 0.5rem;
+            color: gray;
+        }
+
+        & pre {
+            margin-left: 1rem;
+            margin-right: 1rem;
+            margin-top: 0;
+            overflow-x: auto;
+        }
+    }
+
+    pre {
+        .number { color: yellow; }
+        .data { color: gray; }
+        .operator { color: blue; }
+        .function { color: pink; }
+    }
+
+    &.dark {
+        .segment-card {
+
+            & .identificator {
+                color: white;
+                background-color: rgba(255, 255, 255, 0.2); // Elevation 28dp
+            }
+
+            & input {
+                color: white;
+                background-color: rgba(255, 255, 255, 0.08);  // Elevation 3dp
+
+                &:focus {
+                    background-color: rgba(255, 255, 255, 0.11); // Elevation 6dp
+                }
+            }
+        }
+
+        .matrix-card {
+            & input {
+                color: white;
+                background-color: rgba(255, 255, 255, 0.08);  // Elevation 3dp
+            }
+
+            & input.validationError {
+                box-shadow: inset 0 0 5px 0 red;
+            }
+
+            & input:focus {
+                background-color: rgba(255, 255, 255, 0.18); // Elevation 25dp
+            }
+
+            & .inverted {
+                background-color: rgba(255, 226, 0, 0.34);
+            }
+
+            & .matrix_element_invert_button:hover::before {
+                opacity: 0.15;
+            }
+        }
+    }
+}
