@@ -1,40 +1,65 @@
-module.exports = function(options) {
+let logger = require(__basedir + "/src/logger");
+let express = require("express");
+
+function StaticPaths() {
     return function(req, res, next) {
-        let dirPublic = options.srcDir + "/public/";
-
-        if (global.runtimeData.get("updaterRunning") === true) {
-            res.sendFile(dirPublic + "/update/index.html");
-            return;
-        }
-
         switch (req.path) {
 
             case "/":
-                res.sendFile(dirPublic + "index.html");
+                logger.access(`GET '/' requested from '${req.ip}'`);
+                res.sendFile(__basedir + "public/index.html");
+                return;
+
+            case "/manifest.json":
+                logger.access(`GET '/manifest.json' requested from '${req.ip}'`);
+                res.sendFile(__basedir + "public/manifest.json");
                 return;
 
             case "/scripts":
-                res.sendFile(dirPublic + "scripts.html");
+                logger.access(`GET '/scripts' requested from '${req.ip}'`);
+                res.sendFile(__basedir + "public/scripts.html");
                 return;
 
             case "/strip_setup":
-                res.sendFile(dirPublic + "strip_setup.html");
+                logger.access(`GET '/strip_setup' requested from '${req.ip}'`);
+                res.sendFile(__basedir + "public/strip_setup.html");
                 return;
 
             case "/neo_ide":
-                res.sendFile(dirPublic + "neo_ide.html");
+                logger.access(`GET '/neo_ide' requested from '${req.ip}'`);
+                res.sendFile(__basedir + "public/neo_ide.html");
                 return;
 
             case "/logviewer":
-                res.sendFile(dirPublic + "logviewer.html");
+                logger.access(`GET '/logviewer' requested from '${req.ip}'`);
+                res.sendFile(__basedir + "public/logviewer.html");
                 return;
 
             case "/settings":
-                res.sendFile(dirPublic + "settings.html");
+                logger.access(`GET '/settings' requested from '${req.ip}'`);
+                res.sendFile(__basedir + "public/settings.html");
+                return;
+
+            case "/login":
+                logger.access(`GET '/login' requested from '${req.ip}'`);
+                res.sendFile(__basedir + "public/login.html");
                 return;
 
         }
 
         next()
     }
+}
+
+module.exports = function(app) {
+
+    // Setup static assets
+    app.use("/assets", express.static(__basedir + "public/assets"));
+    // Serve docs
+    app.use("/docs", express.static(__basedir + "public/docs"));
+    // Gave up using webpack to compile monaco, therefore, loading the already-compiled code. Probably the slowest way possible, but so it goes.
+    app.use("/monaco-editor", express.static(__basedir + "node_modules/monaco-editor/"));
+    // Setup all our custom middleware
+    app.use(StaticPaths());
+
 }

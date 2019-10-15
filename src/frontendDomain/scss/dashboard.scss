@@ -1,0 +1,85 @@
+#dashboard {
+
+    .status-card {
+        height: 100px;
+        //padding: 1rem;
+
+        .status-card__inner {
+            height: 100%;
+            border-radius: inherit;
+        }
+
+        &__on {
+            .status-card__inner {
+                background: -webkit-linear-gradient(-45deg, rgba(255, 255, 255, 0) 45%, $mdc-theme-secondary 0%);
+            }
+        }
+
+        &__off {
+            .status-card__inner {
+                background: -webkit-linear-gradient(-45deg, rgba(255, 255, 255, 0) 45%, $mdc-theme-primary 0%);
+            }
+        }
+
+        &__status {
+            color: rgba(255, 255, 255, 0.93);
+            padding-bottom: 10px;
+            margin-right: 5px;
+        }
+
+        &__header {
+            position: relative;
+            padding: 1rem;
+            top: 0.5rem;
+            font-size: 2rem;
+        }
+    }
+
+    .script-card {
+        height: 100px;
+        padding: 1rem;
+        //background-color: white;
+
+        &__title {
+            margin-top: -5px;
+        }
+
+        &__script {
+            margin-top: -5px;
+            color: gray;
+            font-size: 3rem;
+            text-overflow: ellipsis;  // Three dots on overflow
+            white-space: nowrap;  // Make the three dots pretty and stuff
+            overflow: hidden;  // Hide the atual overflow
+        }
+    }
+
+    .appstatus-card {
+        height: 100px;
+        width: 100%;
+
+        &__inner {
+            border-radius: inherit;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            background: -webkit-linear-gradient(180deg, rgba(255, 255, 255, 0) 45%, $mdc-theme-secondary 0%);
+        }
+
+        &__item {
+            color: rgba(255, 255, 255, 0.93);
+            width: 100%;
+            height: 100%;
+            //font-size: 16px;
+            text-align: left;
+            display: table-row;
+        }
+
+        &__status {
+            color: black;
+            float: right;
+            padding-right: 10px;
+        }
+    }
+}

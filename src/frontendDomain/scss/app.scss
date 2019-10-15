@@ -1,0 +1,32 @@
+$mdc-theme-primary: #d81b60;
+$mdc-theme-secondary: #3949ab;
+$mdc-theme-on-primary: #fff;
+$mdc-theme-on-secondary: #fff;
+$mdc-theme-background: #fff;
+
+// material css
+@import "@material/theme/mdc-theme";
+@import "@material/elevation/mdc-elevation";
+@import "@material/typography/mdc-typography";
+@import "@material/top-app-bar/mdc-top-app-bar";
+@import "@material/layout-grid/mdc-layout-grid";
+@import "@material/button/mdc-button";
+@import "@material/icon-button/mdc-icon-button";
+@import "@material/drawer/mdc-drawer";
+@import "@material/list/mdc-list";
+@import "@material/card/mdc-card";
+@import "@material/ripple/mdc-ripple";
+@import "@material/shape/mixins";
+@import "@material/shape/functions";
+@import "@material/chips/mdc-chips";
+@import "@material/menu-surface/mdc-menu-surface";
+@import "@material/menu/mdc-menu";
+@import "@material/select/mdc-select";
+@import "@material/switch/mdc-switch";
+@import "@material/fab/mdc-fab";
+// custom css
+@import "lux-neo.scss";
+@import "dashboard.scss";
+@import "scripts.scss";
+@import "strip-setup.scss";
+@import "neo_ide.scss";

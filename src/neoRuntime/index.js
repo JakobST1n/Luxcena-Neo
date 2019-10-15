@@ -6,11 +6,11 @@ let listDirsInDir = p => fs.readdirSync(p).filter(f => fs.statSync(path.join(p, 
 
 class neoRuntime {
 
-    constructor(dirUsrData) {
+    constructor() {
         this._proc = undefined;
         this._cScript = "None";
-        this._cScriptHasExited = false;
-        this._dirUsrData = dirUsrData;
+        this._cScriptHasExited = true;
+        this._dirUsrData = __datadir;
     }
 
     status() {
@@ -119,8 +119,9 @@ class neoRuntime {
         let location = sPath.splice(0, 1).toString();
         if (location === "remote") {
             global.log(`Cannot delete remote script ${path}`, "DEBUG");
-            return;
+            return false;
         }
+
         let absPath = this._dirUsrData + "/usrCode/" + sPath.join("/");
 
         if (this._cScriptPath == path) {
@@ -128,19 +129,21 @@ class neoRuntime {
                 this._proc.stop();
             } catch (err) {
                 global.log("Could not kill process: " + err, "error");
+                return false;
             }
         }
 
         fs.removeSync(absPath);
-
+        return true;
     }
 
-    createEmptyScript(name) {
+    createEmptyScript(name, callback) {
         global.log(`Creating script with name \"${name}/"`, "DEBUG");
 
         let scriptFolderPath = this._dirUsrData + "/usrCode/" + name;
         if (fs.existsSync(scriptFolderPath)) {
             global.log(`A Script with the name \"${name}\" already exists`, "ERROR");
+            callback("SCRIPT_CREATE_ERROR_EXISTS_ALREADY", false);
             return;
         }
 
@@ -150,8 +153,10 @@ class neoRuntime {
             (err) => {
                 if (err) {
                     global.log("Could not create script.py for profile \"" + name + "\"", "ERROR");
+                    callback("SCRIPT_CREATE_ERROR", false);
                 } else {
                     global.log("Script \"" + name + "\" created.", "SUCCESS");
+                    callback("SCRIPT_CREATE_SUCCESS", true);
                 }
             }
         );
@@ -227,6 +232,4 @@ class neoRuntime {
     }
 }
 
-module.exports = (dirUsrData) => {
-    return new neoRuntime(dirUsrData);
-};
+module.exports = () => { return new neoRuntime(); };

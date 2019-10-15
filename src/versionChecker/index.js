@@ -3,11 +3,11 @@ let url = require("url");
 let request = require('request');
 let exec = require("child_process").exec;
 
-class versionChecker {
+class VersionChecker {
 
-    constructor(configJson, packageJson) {
-        this.config = JSON.parse(fs.readFileSync(configJson));
-        this.CPackageJson = JSON.parse(fs.readFileSync(packageJson));
+    constructor() {
+        this.config = JSON.parse(fs.readFileSync(__datadir + "config/versionChecker.json"));
+        this.CPackageJson = JSON.parse(fs.readFileSync(__basedir + "package.json"));
 
         this.version = this.CPackageJson["version"];
         this.repoVersion = this.version;
@@ -53,6 +53,4 @@ class versionChecker {
 
 }
  
-module.exports = (configJson, packageJson) => {
-    return new versionChecker(configJson, packageJson);
-};
+module.exports = () => { return new VersionChecker(); };

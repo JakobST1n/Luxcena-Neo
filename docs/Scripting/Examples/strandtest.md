@@ -5,7 +5,7 @@ This script just does some fancy patterns to show of the neopixels' capabilities
 Runs in an endless loop, take a look at the code to see what it does more
 precisely.
 
-```Python
+``` python
 import LuxcenaNeo as neo  # Can be imported as LuxcenaNeo as well. but anything else and it will fail...
 import time
 
