@@ -87,7 +87,9 @@ module.exports = [{
                     {
                         loader: 'sass-loader',
                         options: {
-                            importer: materialImporter,
+                            sassOptions: {
+                                importer: materialImporter
+                            },
                             sourceMap: true,
                         }
                     }
