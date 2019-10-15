@@ -1,73 +1,114 @@
 <!DOCTYPE html>
-<html class="general">
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>Luxcena Neo - scripts</title>
+<html class="lux-neo">
 
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-alpha.4/css/materialize.min.css">
-        <link rel="stylesheet" href="/css/bundle.css" type="text/css" />
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no" />
+        <meta name="theme-color" content="#d81b60" />
+        <link rel="manifest" href="./manifest.json">
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="stylesheet" type="text/css" href="./assets/bundle.css" />
+        <!--<link rel="stylesheet" type="text/css" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" />-->
     </head>
 
-    <body id="scripts">
-        <header>
-            <nav>
-                <div class="nav-wrapper">
-                    <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-                    <a href="#" class="brand-logo">Luxcena Neo</a>
-                </div>
-            </nav>
-            <div id="sidenav"></div>
-        </header>
+    <body id="scripts" class="mdc-typography mdc-theme--background">
 
-        <main>
-
-            <ul class="row script-list">
-                <div id="local-scripts"></div>
-            </ul>
-
-            <ul class="row script-list">
-                <div id="remote-scripts"></div>
-            </ul>
-
-            <ul class="row script-list" style="display: none;">
-
-                <li>
-                    <div class="col s12 m4">
-                        <div class="card blue darken-1">
-                          <div class="card-content white-text">
-                            <p class="card-title">{{script_name}}</p>
-                            <p>
-                                <span class="badge yellow darken-1 white-text">GitHub</span>
-                            </p>
-                          </div>
-                          <div class="card-action white">
-                            <a href="#"><i class="material-icons">play_arrow</i></a>
-                            <a href="#"><i class="material-icons">file_download</i></a>
-                            <a href="#"><i class="material-icons">delete</i></a>
-                          </div>
-                        </div>
-                    </div>
-                </li>
-
-            </ul>
-
-            <div class="fixed-action-btn">
-                <a class="btn-floating btn-large red" id="createEmptyScript"><i class="large material-icons">add</i></a>
-                <!--<ul>
-                    <li><a class="btn-floating tooltipped green" data-position="left" data-delay="50" data-tooltip="Update scripts from sources"><i class="material-icons">autorenew</i></a></li>
-                    <li><a class="btn-floating tooltipped green" data-position="left" data-delay="50" data-tooltip="Update scripts from sources"><i class="material-icons">create</i></a></li>
-                    <li><a class="btn-floating green" data-position="left" data-delay="50" data-tooltip="Manage external sources"><i class="material-icons">link</i></a></li>
-                    <li><a class="btn-floating blue darken-1" data-position="left" data-delay="50" data-tooltip="Upload a script from your local computer"><i class="material-icons">file_upload</i></a></li>
-                </ul>-->
+        <aside class="mdc-theme--background mdc-drawer mdc-drawer--modal">
+            <div class="mdc-drawer__header elevation-z2">
+                <img src="./assets/img/logo/Icon-192h.png" alt="">
+                <h3 class="mdc-drawer__title mdc-theme--on-surface">Controller</h3>
+                <h6 class="mdc-drawer__subtitle mdc-theme--on-surface">Logged in as <b>Jakob</b></h6>
             </div>
 
+            <div class="mdc-drawer__content elevation-z1 mdc-theme--on-surface"></div>
+        </aside>
 
-        </main>
+        <div class="mdc-drawer-scrim"></div>
+
+        <div class="mdc-drawer-app-content">
+            <header class="mdc-top-app-bar app-bar" id="app-bar">
+                <div class="mdc-top-app-bar__row">
+                    <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+                        <a href="#" class="material-icons mdc-top-app-bar__navigation-icon">menu</a>
+                        <span class="mdc-top-app-bar__title">Luxcena Neo</span>
+                    </section>
+                    <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
+                        <a id="controller-status" href="#" class="material-icons mdc-top-app-bar__action-item" aria-label="Status" alt="Status: ready">check_circle_outline</a>
+                    </section>
+                </div>
+            </header>
+
+            <main class="main-content" id="main-content">
+                <!--<h6 class="mdc-typography--headline6">Your scripts</h6>-->
+
+                <div class="mdc-top-app-bar--fixed-adjust mdc-layout-grid">
+                    <div class="mdc-layout-grid__inner">
+
+                        <div class="mdc-card script-card__v3 mdc-layout-grid__cell--span-4 elevation-z3">
+                            <div class="mdc-card__media mdc-card__media">
+                                <div class="mdc-card__media-content">
+
+                                    <button class="menu_button material-icons mdc-icon-button mdc-card__action mdc-card__action--icon" title="Make this script start at boot">more_vert</button>
+
+                                    <div class="">
+                                        <div class="mdc-menu mdc-menu-surface">
+                                            <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical">
+                                                <li class="mdc-list-item" role="menuitem">
+                                                    <span class="mdc-list-item__text mdc-theme--on-surface">Edit script</span>
+                                                </li>
+                                                <li class="mdc-list-item" role="menuitem">
+                                                    <span class="mdc-list-item__text mdc-theme--on-surface">Edit properties</span>
+                                                </li>
+                                                <li class="mdc-list-item" role="menuitem">
+                                                    <span class="mdc-list-item__text mdc-theme--on-surface">Make script run at boot</span>
+                                                </li>
+                                                <li class="mdc-list-divider" role="separator"></li>
+                                                <li class="mdc-list-item" role="menuitem">
+                                                    <span class="mdc-list-item__text mdc-theme--on-surface">Duplicate script</span>
+                                                </li>
+                                                <li class="mdc-list-divider" role="separator"></li>
+                                                <li class="mdc-list-item" role="menuitem">
+                                                    <span class="mdc-list-item__text mdc-theme--on-surface">Delete script</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <h1 class="mdc-typography--headline4">Strandtest</h1>
+                                    <button class="play_button mdc-icon-button material-icons mdc-elevation--z3">play_arrow</button>
+                                </div>
+                            </div>
+                            <div class="mdc-card__actions">
+                                <div class="mdc-card__action-button">
+                                    <div class="mdc-card__media-content">
+                                        <div class="mdc-chip-set">
+                                            <div class="mdc-chip mdc-theme--on-surface" tabindex="0">
+                                                <div class="mdc-chip__text">Runs at boot</div>
+                                            </div>
+                                            <div class="mdc-chip mdc-theme--on-surface" tabindex="0">
+                                                <div class="mdc-chip__text">Current</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="mdc-fab mdc-fab--extended app-fab--absolute">
+                    <span class="material-icons mdc-fab__icon">add</span>
+                    <span class="mdc-fab__label">New Script</span>
+                </button>
+            </main>
+        </div>
 
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
-        <script type="text/javascript" src="/js/bundle.js"></script>
-  </body>
+        <script type="text/javascript" src="./assets/bundle.js"></script>
+        <!--<script type="text/javascript" src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>-->
+    </body>
+
 </html>

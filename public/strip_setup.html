@@ -1,131 +1,286 @@
 <!DOCTYPE html>
-<html class="general">
-  <head>
-    <!--Import Google Icon Font-->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!--Import materialize.css-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-alpha.4/css/materialize.min.css">
-    <link rel="stylesheet" href="./css/luxcena.css" type="text/css" />
-    <!--Let browser know website is optimized for mobile-->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  </head>
+<html class="lux-neo">
 
-    <body>
-        <header>
-            <nav>
-                <div class="nav-wrapper">
-                    <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-                    <a href="#" class="brand-logo">Luxcena Neo</a>
-                </div>
-            </nav>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no" />
+        <meta name="theme-color" content="#d81b60" />
+        <link rel="manifest" href="./manifest.json">
 
-            <ul id="slide-out" class="sidenav sidenav-fixed">
-                <li>
-                    <div class="user-view">
-                        <div class="background">
-                            <img src="./logo/150h/Icon.png">
-                        </div>
-                        <!--<a href="#!user"><img class="circle" src="https://picsum.photos/200/300/?random"></a>
-                        <a href="#!name"><span class="white-text name">John Doe</span></a>
-                        <a href="#!email"><span class="white-text email">Guest</span></a>-->
-                    </div>
-                </li>
-                <li><div class="divider"></div></li>
-                <li><a class="waves-effect" href="/"><i class="material-icons">dashboard</i> Dashboard</a></li>
-                <li><a class="waves-effect" href="/profiles"><i class="material-icons">cloud</i> Profiles</a></li>
-                <li><a class="waves-effect" href="/neo_ide"><i class="material-icons">code</i> Neo IDE</a></li>
-                <li><div class="divider"></div></li>
-                <li><a class="subheader">Settings</a></li>
-                <li><a class="waves-effect" href="strip_setup"><i class="material-icons">straighten</i> Strip setup</a></li>
-                <li><a class="waves-effect" href="/settings"><i class="material-icons">settings</i> Settings</a></li>
-            </ul>
-        </header>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="stylesheet" type="text/css" href="./assets/bundle.css" />
+        <!--<link rel="stylesheet" type="text/css" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" />-->
+    </head>
 
-        <main>
+    <body id="strip-setup" class="mdc-typography">
 
-            <div class="row">
-
-                <div class="col s12 m5">
-                    <div class="card">
-                        <div class="card-content">
-
-                            <div class="input-field">
-                                <select>
-                                    <option value="" disabled selected>How are the LEDs configured?</option>
-                                    <option value="1">Basic, straight?</option>
-                                    <option value="2">Adventorous, snake?</option>
-                                    <option value="3">Crazy, just something random?</option>
-                                </select>
-                                <label>Led configuration</label>
-                            </div>
-
-                            <div class="input-field">
-                                <input type="number" name="" value="">
-                                <label>Number of LEDs</label>
-                            </div>
-
-                            <div class="input-field">
-                                <input type="number" name="" value="">
-                                <label>Number of Segments</label>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col s12 m7">
-                    <div class="card">
-                        <div class="card-content">
-
-                            Segment config...
-
-                        </div>
-                    </div>
-                </div>
-
+        <aside class="mdc-theme--background mdc-drawer mdc-drawer--modal">
+            <div class="mdc-drawer__header elevation-z2">
+                <img src="./assets/img/logo/Icon-192h.png" alt="">
+                <h3 class="mdc-drawer__title mdc-theme--on-surface">Controller</h3>
+                <h6 class="mdc-drawer__subtitle mdc-theme--on-surface">Logged in as <b>Jakob</b></h6>
             </div>
 
-            <div class="row">
-                <div class="col s12 m12">
-                    <div class="card">
-                        <div class="card-content">
-                            <p>Explanation of them different configuration modes. "⮽" is the symbol used for LEDs, everything else is just wire.</p>
-                            <h5>Straight:</h5>
-                            Everything is in a stright line, or the cable is looped around.
-                            <pre style="line-height:0.9em;">
-└⮽─⮽─⮽─⮽─⮽─⮽─⮽─⮽┐
+            <div class="mdc-drawer__content elevation-z1 mdc-theme--on-surface"></div>
+        </aside>
 
-└⮽─⮽─⮽─⮽┐
-┌────────┘
-└⮽─⮽─⮽─⮽┐
-                            </pre>
-                            <h5>Snake:</h5>
-                            The diodes are in a "snake"-pattern.
-                            <pre style="line-height:0.9em;">
-└⮽─⮽─⮽─⮽┐
-┌⮽─⮽─⮽─⮽┘
-└⮽─⮽─⮽─⮽┐
-                            </pre>
-                            <h5>Crazy:</h5>
-                            <br />This will just assume you have no idea what you are doing, and make a random configuration for you. based purely on the number of LEDs you have.
-                            <pre style="line-height:0.9em;">
-└⮽─⮽x⮽─⮽
-   └─┐
-┌⮽─⮽x⮽─⮽┐
-└⮽─⮽─⮽─⮽┘
-                            </pre>
+        <div class="mdc-drawer-scrim"></div>
+
+        <div class="mdc-drawer-app-content">
+            <header class="mdc-top-app-bar app-bar" id="app-bar">
+                <div class="mdc-top-app-bar__row">
+                    <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+                        <a href="#" class="material-icons mdc-top-app-bar__navigation-icon">menu</a>
+                        <span class="mdc-top-app-bar__title">Luxcena Neo</span>
+                    </section>
+                    <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end" role="toolbar">
+                        <a id="controller-status" href="#" class="mdc-theme--on-primary material-icons mdc-top-app-bar__action-item" aria-label="Status" alt="Status: ready">check_circle_outline</a>
+                    </section>
+                </div>
+            </header>
+
+            <main class="main-content" id="main-content">
+
+                <div class="mdc-top-app-bar--fixed-adjust mdc-layout-grid">
+                    <div class="mdc-layout-grid__inner">
+
+                        <div class="mdc-card segment-card mdc-layout-grid__cell--span-12 elevation-z1 mdc-theme--on-surface">
+
+                            <div class="segment-card__title mdc-typography--headline6">
+                                Segments
+                            </div>
+
+                            <div class="segment-card__body mdc-typography--body2">
+                                Here you are defining the "segments" of your light-display. Use this to split the strip in stairs, blocks or any other configuration.
+                                Normally you would define a segment, for each cut you have made in the strip. But you could do other things to get fancy results.
+                                Each segment will be represented in the "matrix", by the number just below the number. Each segment should have it's own box below.
+                            </div>
+
+                            <div class="segment-card__list">
+                                <div class="segment-card__list__segments"></div>
+                                <button id="add_segment" class="mdc-icon-button material-icons">add_circle_outline</button>
+                                <button id="remove_segment" class="mdc-icon-button material-icons">remove_circle_outline</button>
+                            </div>
+
+
                         </div>
+
+                        <div class="mdc-card matrix-card mdc-layout-grid__cell--span-12 elevation-z1 mdc-theme--on-surface">
+
+                            <div class="matrix-card__title mdc-typography--headline6">
+                                Matrix
+                            </div>
+
+                            <div class="matrix-card__body mdc-typography--body2">
+                                Here you are defining your matrix. A matrix is really nothing more than a 2-dimentional array, or a list of lists.
+                                This is not a mathematical array, meaning each "row" can have different lengths. Use this to stitch your segments
+                                together. Each "box" should contain the number of the segment it is representing. By pressing the double-arrows on the box,
+                                you can "invert" a segment. This means counting from the other end. Use this if you have the segments in a snake-layout.
+                            </div>
+
+                            <div class="">
+                                <ul class="matrix-card__list" style="">
+
+                                    <li class="matrix-card__list__y__item" data-yPos="0" data-len="1">
+
+                                        <div class="matrix-card__list__x__items"><input class="matrix-card__list__x__items__item" type="number" name="Matrix x: 0 y: 0" id="matrix_0_0"><button class="matrix_element_invert_button mdc-icon-button material-icons" data-target="matrix_0_0">compare_arrows</button></div>
+                                        <button class="matrix_add_x_item mdc-icon-button material-icons">add_circle_outline</button>
+                                        <button class="matrix_remove_x_item mdc-icon-button material-icons">remove_circle_outline</button>
+
+                                    </li>
+
+                                </ul>
+                                <button class="matrix_add_y_item mdc-icon-button material-icons">add_circle_outline</button>
+                                <button class="matrix_remove_y_item mdc-icon-button material-icons">remove_circle_outline</button>
+                            </div>
+
+
+                        </div>
+
+                        <div class="mdc-card advanced-card mdc-layout-grid__cell--span-12 elevation-z1 mdc-theme--on-surface">
+
+                            <div class="advanced-card__title mdc-typography--headline6">
+                                Advanced
+                            </div>
+
+                            <div class="advanced-card__body mdc-typography--body2">
+                            </div>
+
+                            <ul class="advanced-card__list">
+
+                                <li>
+                                    <div class="advanced-card__list__GPIO mdc-select">
+                                        <i class="mdc-select__dropdown-icon"></i>
+                                        <select class="mdc-select__native-control">
+                                            <option value="" disabled selected></option>
+                                            <option value="fruit">
+                                                10 (SPI)
+                                            </option>
+                                            <option value="grains">
+                                                12 (PWM)
+                                            </option>
+                                            <option value="vegetables">
+                                                18 (PWM)
+                                            </option>
+                                            <option value="fruit">
+                                                21 (PCM)
+                                            </option>
+                                            <option value="fruit">
+                                                31 (PCM)
+                                            </option>
+                                            <option value="fruit">
+                                                38 (SPI)
+                                            </option>
+                                            <option value="fruit">
+                                                40 (PWM)
+                                            </option>
+                                            <option value="fruit">
+                                                52 (PWM)
+                                            </option>
+                                        </select>
+                                        <label class="mdc-floating-label">GPIO pin</label>
+                                        <div class="mdc-line-ripple"></div>
+                                    </div>
+                                </li>
+
+                                <li>
+                                    <div class="advanced-card__list__DMA mdc-select">
+                                        <i class="mdc-select__dropdown-icon"></i>
+                                        <select class="mdc-select__native-control">
+                                            <option value="" disabled selected></option>
+                                            <option value="grains">
+                                                0
+                                            </option>
+                                            <option value="grains">
+                                                1
+                                            </option>
+                                            <option value="grains">
+                                                2
+                                            </option>
+                                            <option value="grains">
+                                                3
+                                            </option>
+                                            <option value="grains">
+                                                4
+                                            </option>
+                                            <option value="grains">
+                                                5
+                                            </option>
+                                            <option value="grains">
+                                                6
+                                            </option>
+                                            <option value="grains">
+                                                7
+                                            </option>
+                                            <option value="grains">
+                                                8
+                                            </option>
+                                            <option value="grains">
+                                                9
+                                            </option>
+                                            <option value="vegetables">
+                                                10 (Recommended)
+                                            </option>
+                                            <option value="fruit">
+                                                11
+                                            </option>
+                                            <option value="fruit">
+                                                12
+                                            </option>
+                                            <option value="fruit">
+                                                13
+                                            </option>
+                                            <option value="fruit">
+                                                14
+                                            </option>
+                                            <option value="fruit">
+                                                15
+                                            </option>
+                                        </select>
+                                        <label class="mdc-floating-label">Dma channel</label>
+                                        <div class="mdc-line-ripple"></div>
+                                    </div>
+                                </li>
+
+                                <li>
+                                    <div class="advanced-card__list__freq mdc-select">
+                                        <i class="mdc-select__dropdown-icon"></i>
+                                        <select class="mdc-select__native-control">
+                                            <option value="" disabled selected></option>
+                                            <option value="0">
+                                                80000
+                                            </option>
+                                            <option value="1">
+                                                10000
+                                            </option>
+                                        </select>
+                                        <label class="mdc-floating-label">Frequency</label>
+                                        <div class="mdc-line-ripple"></div>
+                                    </div>
+                                </li>
+
+
+                                <li>
+                                    <div class="advanced-card__list__led-channel mdc-select">
+                                        <i class="mdc-select__dropdown-icon"></i>
+                                        <select class="mdc-select__native-control">
+                                            <option value="" disabled selected></option>
+                                            <option value="0">
+                                                0
+                                            </option>
+                                            <option value="1">
+                                                1
+                                            </option>
+                                        </select>
+                                        <label class="mdc-floating-label">LED channel</label>
+                                        <div class="mdc-line-ripple"></div>
+                                    </div>
+                                </li>
+
+                                <li>
+                                    <div class="advanced-card__list__invert mdc-switch">
+                                        <div class="mdc-switch__track"></div>
+                                        <div class="mdc-switch__thumb-underlay">
+                                            <div class="mdc-switch__thumb">
+                                                <input type="checkbox" id="basic-switch" class="mdc-switch__native-control" role="switch">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <label for="basic-switch">Invert signal</label>
+                                </li>
+
+                            </ul>
+
+                        </div>
+
+                        <div class="mdc-card matrix-output-card mdc-layout-grid__cell--span-12">
+                            <div class="matrix-output-card__info mdc-typography--body2">
+                                The generated list of segments, use to debug your config. <br />
+                                This should really just be a pythonic list exactly as the one above.
+                            </div>
+                            <pre id="generated-segment-list"></pre>
+                        </div>
+
+                        <div class="mdc-card matrix-output-card mdc-layout-grid__cell--span-12">
+                            <div class="matrix-output-card__info mdc-typography--body2">
+                                The generated matrix, use it to debug your config. <br />
+                                It's a raw dump so it might look messy, but each digit here
+                                corresponds to a given LED on the strip.
+                            </div>
+
+                            <pre id="generated-matrix-dump"></pre>
+                        </div>
+
                     </div>
                 </div>
-            </div>
 
-        </main>
+            </main>
+        </div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-alpha.4/js/materialize.min.js"></script>
-        <script type="text/javascript">
-            var elem = document.querySelector('.sidenav');
-            var instance = M.Sidenav.init(elem);
-            var instance = M.FormSelect.init(document.querySelector('select'));
-        </script>
-  </body>
+        <script src="/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="./assets/bundle.js"></script>
+        <!--<script type="text/javascript" src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>-->
+    </body>
+
 </html>

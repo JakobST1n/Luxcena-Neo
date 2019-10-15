@@ -9,9 +9,8 @@ or is alias
 ```bash
 $ lux-neo
 ```
-{% hint style='danger' %}
-This CLI assumes root access, so please run it with `sudo`
-{% endhint %}
+!!! danger "Important!"
+    This CLI assumes root access, so please run it with `sudo`
 
 ## Options
 ### `sudo lux-neo uninstall`
@@ -93,4 +92,5 @@ Luxcena-neo-cli [args: 'version']
 ### `sudo lux-neo selectBranch <branch>`
 This will change what branch you are on to <branch>. Stashing changes (shouldn't be a concern, but just saying it anyways).
 
-*Please note that the version-checker now will just be useless, as it does not now what branch we really are on.*
+!!! note
+    Please note that the version-checker now will just be useless, as it does not now what branch we really are on.

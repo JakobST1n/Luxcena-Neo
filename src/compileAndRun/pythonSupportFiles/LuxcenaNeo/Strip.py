@@ -1,5 +1,7 @@
 from neopixel import *
 from Matrix import Matrix, getSegmentRange
+from PowerCalc import calcCurrent
+
 
 class Strip:
 
@@ -13,7 +15,6 @@ class Strip:
         self.LED_PIN     = stripConf["led_pin"]      # 18 uses PWM, 10 uses SPI /dev/spidev0.0
         self.LED_DMA     = stripConf["led_dma"]      # DMA channel for generating the signal, on the newer ones, try 10
         self.LED_COUNT   = sum(self.SEGMENTS)        # Number of LEDs in strip
-
 
         self.LED_BRIGHTNESS = 255
 
@@ -39,10 +40,10 @@ class Strip:
 
         # Setup matrix
         print("  * Generating matrix")
-        #try:
+        # try:
         self.pixelMatrix = Matrix(self.SEGMENTS, stripConf["matrix"])
         self.pixelMatrix.dump()
-        #except:
+        # except:
         #    print("Something went wrong while setting up your self-defined matrix.")
 
     def show(self):
@@ -59,21 +60,23 @@ class Strip:
         """
         self.strip.setPixelColor(self.pixelMatrix.get(x, y), color)
 
-    def setPixelColorRGB(self, n, red, green, blue, white = 0):
+    def setPixelColorRGB(self, n, red, green, blue, white=0):
         """Set LED at position n to the provided red, green, and blue color.
         Each color component should be a value from 0 to 255 (where 0 is the
         lowest intensity and 255 is the highest intensity).
         """
         self.strip.setPixelColor(n, Color(red, green, blue, white))
 
-    def setPixelColorXYRGB(self, x, y, red, green, blue, white = 0):
+    def setPixelColorXYRGB(self, x, y, red, green, blue, white=0):
         """Set LED at position n to the provided red, green, and blue color.
         Each color component should be a value from 0 to 255 (where 0 is the
         lowest intensity and 255 is the highest intensity).
         """
-        self.strip.setPixelColor(self.pixelMatrix.get(x, y), Color(red, green, blue, white))
+        self.strip.setPixelColor(
+            self.pixelMatrix.get(x, y), Color(red, green, blue, white)
+        )
 
-    def setSegmentColorRGB(self, segment, red, green, blue, white = 0):
+    def setSegmentColorRGB(self, segment, red, green, blue, white=0):
         """Set a whole segment to the provided red, green and blue color.
         Each color component should be a value from 0 to 255 (where 0 is the
         lowest intensity and 255 is the highest intensity)."""
@@ -81,8 +84,8 @@ class Strip:
             self.strip.setPixelColor(n, Color(red, green, blue, white))
 
     def setBrightness(self, brightness):
-        """Scale each LED in the buffer by the provided brightness.  A brightness
-        of 0 is the darkest and 255 is the brightest.
+        """Scale each LED in the buffer by the provided brightness.
+        A brightness of 0 is the darkest and 255 is the brightest.
         """
         self.strip.setBrightness(brightness)
 
@@ -107,12 +110,13 @@ class Strip:
         return self.strip.getPixelColor(n)
 
 
-def Color(red, green, blue, white = 0):
+def Color(red, green, blue, white=0):
     """Convert the provided red, green, blue color to a 24-bit color value.
-    Each color component should be a value 0-255 where 0 is the lowest intensity
-    and 255 is the highest intensity.
+    Each color component should be a value 0-255
+    where 0 is the lowest intensity and 255 is the highest intensity.
     """
-    return (white << 24) | (red << 16)| (green << 8) | blue
+    return (white << 24) | (red << 16) | (green << 8) | blue
+
 
 def hexColor(value):
     value = value.lstrip('#')

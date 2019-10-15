@@ -1,0 +1,103 @@
+.lux-neo {
+
+    body {
+        display: flex;
+        height: 100vh;
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    .mdc-drawer {
+        background:
+            linear-gradient(
+                to top,
+                rgba(255, 255, 255, 0.05),
+                rgba(255, 255, 255, 0.05)
+            )
+            var(--mdc-theme-background);
+    }
+
+    .mdc-drawer-app-content {
+        flex: auto;
+        overflow: auto;
+        position: relative;
+    }
+
+    .mdc-top-app-bar__action-item {
+        color: white !important;
+    }
+
+    .mdc-drawer__header img {
+        margin: -10px 0 -40px 10px;
+    }
+
+    .main-content {
+        overflow: auto;
+        height: 100%;
+    }
+
+    .app-bar {
+        position: absolute;
+    }
+
+    .dark {
+        .mdc-drawer__header img {
+            filter: invert(100%);
+        }
+
+        .drawer-item,
+        .drawer-item i,
+        .drawer-item span,
+        .mdc-list-group__subheader {
+            color: white;
+        }
+
+        .drawer-item:hover,
+        .drawer-item:hover > i {
+            color: var(--mdc-theme-primary);
+        }
+
+        .mdc-list-divider {
+            border-bottom-color: rgba(255, 255, 255, 0.15);
+        }
+    }
+
+    // only apply this style if below top app bare
+    .mdc-top-app-bar {
+        //z-index: 7;
+    }
+
+    .mdc-top-app-bar--fixed-adjust {
+        margin-top: 64px;
+    }
+
+    @media only screen and (min-width: 840px) {
+        .mdc-top-app-bar__navigation-icon {
+            display: none;
+        }
+    }
+
+    $elevations:
+        "0" 0,
+        "1" 0.05,
+        "2" 0.07,
+        "3" 0.08,
+        "4" 0.09,
+        "6" 0.11,
+        "8" 0.12,
+        "12" 0.14,
+        "16" 0.15,
+        "24" 0.16;
+
+    @each $i in $elevations {
+        .elevation-z#{nth($i, 1)} {
+            background:
+                linear-gradient(
+                    to top,
+                    rgba(255, 255, 255, nth($i, 2)),
+                    rgba(255, 255, 255, nth($i, 2))
+                )
+                var(--mdc-theme-surface);
+        }
+    }
+}
