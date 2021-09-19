@@ -1,0 +1,51 @@
+site_name: Luxcena Neo Documentation
+site_dir: public/docs
+theme: material
+extra_javascript:
+    - assets/luxcena-colors.js
+    - assets/webfont.js
+    - assets/snap.svg-min.js
+    - assets/underscore-min.js
+    - assets/sequence-diagram.min.js
+    - assets/js-sequence.js
+extra_css:
+    - assets/luxcena-colors.css
+markdown_extensions:
+    - codehilite:
+        pygments_style: monokai
+        linenums: true
+    - admonition
+    - pymdownx.arithmatex
+    - pymdownx.betterem:
+        smart_enable: all
+    - pymdownx.caret
+    - pymdownx.critic
+    - pymdownx.details
+    - pymdownx.emoji:
+        emoji_generator: !!python/name:pymdownx.emoji.to_svg
+    - pymdownx.inlinehilite
+    - pymdownx.magiclink
+    - pymdownx.mark
+    - pymdownx.smartsymbols
+    - pymdownx.superfences
+    - pymdownx.tasklist:
+        custom_checkbox: true
+    - pymdownx.tilde
+nav:
+    - Introduction: index.md
+    - Plan for the future: FuturePlan.md
+    - Usage:
+        - Install: Usage/Install.md
+        - Configuration: Usage/Configuration.md
+        - CLI: Usage/CLI.md
+    - Scripting:
+        - Support Library: Scripting/SupportLib/README.md
+        - Examples:
+            - Strandtest: Scripting/Examples/strandtest.md
+    - Code Documentation:
+        - Modules:
+            - CompileAndRun: "Code Documentation/Modules/CompileAndRun.md"
+        - Run: Code Documentation/Run/index.md
+        - Design: Code Documentation/Design/index.md
+        - API:
+            - Socket-IO: Code Documentation/SocketIO.md
