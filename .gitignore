@@ -7,8 +7,12 @@ __pycache__
 venv
 tmp
 
+*.log
+*.error
+
 public/build
 public/assets/vendor
 
+state.json
 variables.json
 globvars.json
