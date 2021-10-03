@@ -79,7 +79,7 @@ if [ "$action" == "update" ]; then
   curl -fsSL https://deb.nodesource.com/setup_14.x | bash - || die
 
   # Make sure nodejs and prerequisites is installed
-  apt install nodejs python-pip || die
+  apt -qy install nodejs python-pip || die
 
   # Make sure we have python virtualenv installed
   pip3 install virtualenv || die
@@ -110,6 +110,7 @@ if [ "$action" == "update" ]; then
 
   printf "Update complete.\n"
   systemctl start luxcena-neo
+  systemctl enable luxcena-neo
   exit 0
 
 elif [ "$action" == "uninstall" ]; then
@@ -118,13 +119,14 @@ elif [ "$action" == "uninstall" ]; then
     tput sgr0
     printf '\e[93m%s\e[0m\n' "--------------------------"
     tput setaf 8
-    printf "By uninstalling Luxcena-Neo you will loose all you data, including your scripts.\n\n"
+    printf "By uninstalling Luxcena-Neo you might loose all data, including your scripts.\n\n"
 
     dlgYN "Are you sure you want to uninstall?" res
     if [ $res -eq 1 ]; then
         systemctl stop luxcena-neo
         deluser lux-neo
         rm -rf /home/lux-neo
+	rm -rf /opt/luxcena-neo
         rm /etc/systemd/system/luxcena-neo.service
         rm /usr/bin/luxcena-neo.sh
         rm /usr/bin/lux-neo
@@ -132,6 +134,7 @@ elif [ "$action" == "uninstall" ]; then
 
         tput setaf 2
         printf "\nEverything should now be gone.\n"
+        printf "/etc/luxcena-neo and /var/log/luxcena-neo is not removed.\n"
         tput sgr0
         tput setaf 8
         printf "Well, some dependencies still exists. Those are:\n"
@@ -139,9 +142,6 @@ elif [ "$action" == "uninstall" ]; then
         printf " - packages (nodejs scons python-dev swig)\n"
         tput sgr0
     fi
-
-elif [ "$action" == "conf" ]; then
-    nano /home/lux-neo/userdata/config/strip.json
 
 elif [ "$action" == "start" ]; then
     systemctl start luxcena-neo
@@ -176,23 +176,23 @@ elif [ "$action" == "status" ]; then
 elif [ "$action" == "log" ]; then
     if [ "$2" == "service" ]; then
         printf '\e[93m%s\e[0m\n' "━━━Service log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
-        tail -F -n 20 /home/lux-neo/logs/service.log
+        tail -F -n 20 /var/log/luxcena-neo/service.log
     fi
     if [ "$2" == "app" ]; then
         printf '\e[93m%s\e[0m\n' "━━━App log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
-        tail -F -n 20 /home/lux-neo/logs/logger.log
+        tail -F -n 20 /var/log/luxcena-neo/logger.log
     fi
 
 elif [ "$action" == "version" ] || [ "$action" == "v" ]; then
     printf "╭─────────────────────╮\n"
     printf "│ Version: Unknown    │\n"
-    printf "│ branch : $(git -C /home/lux-neo/src branch | grep \* | cut -d ' ' -f2)    │\n"
+    printf "│ branch : $(git -C /opt/luxcena-neo branch | grep \* | cut -d ' ' -f2)    │\n"
     printf "╰─────────────────────╯\n\n"
 
 elif [ "$action" == "selectBranch" ]; then
-    printf "Current $(git -C /home/lux-neo/src branch | grep \* | cut -d ' ' -f2)Branch \n"
-    runuser -l 'lux-neo' -c "git -C ~/src stash"
-    runuser -l 'lux-neo' -c "git -C ~/src checkout $2" || printf "\e[91mYou should now run \e[90m'sudo lux-neo update'\e[91m!\n"
+    printf "Current $(git -C /opt/luxcena-neo branch | grep \* | cut -d ' ' -f2)Branch \n"
+    runuser -l 'lux-neo' -c "git -C /opt/luxcena-neo stash"
+    runuser -l 'lux-neo' -c "git -C /opt/luxcena-neo checkout $2" || printf "\e[91mYou should now run \e[90m'sudo lux-neo update'\e[91m!\n"
 
 else
     usage
