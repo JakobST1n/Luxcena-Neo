@@ -8,7 +8,7 @@
 const fs = require("fs");
 const fsPromises = fs.promises;
 const RuntimeProcess = require("./RuntimeProcess");
-let logger = require(__basedir + "/src/logger");
+let logger = require(__appdir + "/src/Logger");
 const EventEmitter = require('events');
 
 /** @type {object} this should be a pointer to a object referencing all neoModules (see app.js) */
@@ -51,7 +51,7 @@ function isMode(path) {
  */
 function listModes() {
     let modeDirs = [
-        ["builtin/", fs.readdirSync(__basedir + "/NeoRuntime/builtin")],
+        ["builtin/", fs.readdirSync(__appdir + "/NeoRuntime/builtin")],
         ["remote/", fs.readdirSync(__datadir + "/remoteCode")],
         ["user/", fs.readdirSync(__datadir + "/userCode")]
     ]
@@ -167,7 +167,7 @@ function getModePath(modeId) {
     let location = path.splice(0, 1).toString();
     if (location === "user") { path = __datadir + "/userCode/" + path.join("/"); }
     if (location === "remote") { path = __datadir + "/remoteCode/" + path.join("/"); }
-    if (location === "builtin") { path = __basedir + "/NeoRuntime/builtin/" + path.join("/"); }
+    if (location === "builtin") { path = __appdir + "/NeoRuntime/builtin/" + path.join("/"); }
     return path;
 }
 

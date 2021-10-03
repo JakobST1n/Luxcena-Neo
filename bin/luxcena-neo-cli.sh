@@ -65,14 +65,49 @@ if [ "$action" == "update" ]; then
       exit 1
   fi
 
+  # Stop the service if it is running already
   systemctl stop luxcena-neo
-  runuser -l 'lux-neo' -c 'git -C ~/src pull'
 
+  # Go to source code directory
+  WDIR="/opt/luxcena-neo"
+  #cd "$WDIR"
+
+  # Fetch newest changes on branch
+  runuser -l 'lux-neo' -c "git -C $WDIR pull" || die
+
+  # Add node repo
+  curl -fsSL https://deb.nodesource.com/setup_14.x | bash - || die
+
+  # Make sure nodejs and prerequisites is installed
+  apt install nodejs python-pip || die
+
+  # Make sure we have python virtualenv installed
+  pip3 install virtualenv || die
+
+  # Create and configure python virtualenv
+  runuser -l 'lux-neo' -c "rm -rf $WDIR/NeoRuntime/Runtime/venv" || die
+  runuser -l 'lux-neo' -c "virtualenv -p /usr/bin/python3 $WDIR/NeoRuntime/Runtime/venv" || die
+  runuser -l 'lux-neo' -c "source $WDIR/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x" || die
+
+  # Build and run all npm scripts
   if [ "$2" != "skipNode" ]; then
-      runuser -l 'lux-neo' -c 'export NODE_ENV=production; npm --prefix ~/src install ~/src --only=production'
+      runuser -l 'lux-neo' -c "export NODE_ENV=development; npm --prefix $WDIR install $WDIR" || die
   fi
+  ##runuser -l 'lux-neo' -c "cd $WDIR && npm run build:frontend" || die
+  ##runuser -l 'lux-neo' -c "cd $WDIR && npm run build:fontawesome" || die
+  ##runuser -l 'lux-neo' -c "cd $WDIR && npm run build:dialog-polyfill" || die
+  runuser -l 'lux-neo' -c "npm --prefix \"$WDIR\" run build:frontend" || die
+  runuser -l 'lux-neo' -c "npm --prefix \"$WDIR\" run build:fontawesome" || die
+  runuser -l 'lux-neo' -c "npm --prefix \"$WDIR\" run build:dialog-polyfill" || die
 
-  cp /home/lux-neo/src/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh
+
+  # Install new cli script
+  cp /opt/luxcena-neo/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh || die
+  
+  # Install updated systemd script
+  cp /opt/luxcena-neo/bin/luxcena-neo.service /etc/systemd/system/luxcena-neo.service || die
+  systemctl daemon-reload || die
+
   printf "Update complete.\n"
   systemctl start luxcena-neo
   exit 0

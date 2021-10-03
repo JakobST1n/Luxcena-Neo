@@ -32,8 +32,8 @@ class RuntimeProcess {
             "python3", 
             [
                 "-u", // This makes us able to get real-time output
-                `${__basedir}/NeoRuntime/Runtime/neo_runtime.py`,
-                `--strip-config="${__datadir}/config/strip.ini"`,
+                `${__appdir}/NeoRuntime/Runtime/neo_runtime.py`,
+                `--strip-config="${__configdir}/strip.ini"`,
                 `--mode-path="${this.modePath}"`,
                 `--mode-entry=script`
             ]

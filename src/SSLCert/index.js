@@ -7,7 +7,7 @@
  * @author jakobst1n.
  * @since  14.16.2019
  */
- let logger = require(__basedir + "/src/logger");
+ let logger = require(__appdir + "/src/Logger");
  const fs = require("fs");
  const { execSync } = require("child_process");
  
@@ -20,7 +20,7 @@ var neoModules;
  class CertMon {
  
      constructor(configPath, certPath, httpsConfig) {
-         this.certPath = __datadir + "/config/certs/";
+         this.certPath = __configdir + "/certs/";
  
          let valid = this.checkValidity();
          if (!valid) {
