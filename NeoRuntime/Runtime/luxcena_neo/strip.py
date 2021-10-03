@@ -59,7 +59,7 @@ class Strip:
         self.__brightness = 255
         self.__actual_brightness = self.__brightness
 
-        self.__globvars_path = path.join(path.split(path.dirname(path.abspath(__file__)))[0], "globvars.json")
+        self.__globvars_path = path.join(path.split(path.dirname(path.abspath(__file__)))[0], "state.json")
         if path.exists(self.__globvars_path):
             try:
                 with open(self.__globvars_path, "r") as f:

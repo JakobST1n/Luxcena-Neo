@@ -11,7 +11,8 @@ import time
 import threading
 import select
 import traceback
-from os import path
+import socket
+from os import path, remove
 
 from luxcena_neo.strip import Strip
 
@@ -41,7 +42,6 @@ def init_package(package_path, entry_module, strip):
     # Make the strip instance available in our modules
     setattr(module, "strip", strip)
 
-    module_entry_instance.declare_variables()
     return module_entry_instance
 
 def exec_module(module_executor_loop_func):
@@ -53,10 +53,12 @@ def exec_module(module_executor_loop_func):
 class NeoRuntime:
 
 
-    def __init__(self, package_path, entry_module, strip_config_file):
+    def __init__(self, package_path, entry_module, strip_config_file, socket_file):
         self.__strip = init_strip(strip_config_file)
         self.__module_entry_instance = init_package(package_path, entry_module, self.__strip)
         self.__module_th = None
+        self.__socket_file = socket_file
+        self.__send_strip_buffer = False
         
 
     def start(self):
@@ -66,49 +68,113 @@ class NeoRuntime:
 
         # This will run in this thread.
         print("> Starting to listen on stdin")
+        self.__s = None
         try:
-            self.__command_listener_loop()
+            self.__bind_socket()
+            self.__socket_listener()
         except KeyboardInterrupt:
             print("Exiting...")
         except Exception as e:
             traceback.print_exc()
-    
+        finally:
+            self.__close_socket()
 
-    def __command_listener_loop(self):
+    def __bind_socket(self):
+        if path.exists(self.__socket_file):
+            remove(self.__socket_file)
+        
+        self.__s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.__s.bind(self.__socket_file)
+        self.__s.listen(1)
+
+    def __socket_listener(self):
+        self.__s_clients = []
         last_send = time.perf_counter()
+
         while True:
             if not self.__module_th.is_alive(): break
-            while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
-                line = sys.stdin.readline()
-                if line:
-                    line = line.replace("\n", "")
-                    if (line[0:10] == ":::setvar:"):
-                        name, value = (line.split(" ", 1)[1]).replace("\"", "").split(":", 1)
-                        if name in self.__module_entry_instance.vars:
-                            self.__module_entry_instance.vars[name] = value
-                    elif (line[0:11] == ":::setglob:"):
-                        name, value = (line.split(" ", 1)[1]).replace("\"", "").split(":", 1)
-                        if name == "brightness":
-                            self.__strip.brightness = int(value)
-                        elif name == "power_on":
-                            self.__strip.power_on = value == "true"
-                        else:
-                            print(f"Unknown globvar \"{name}\"")
-            else:
-                if (time.perf_counter() - last_send) > 0.5:
-                    _vars = "{"
-                    for name, var in self.__module_entry_instance.vars:
-                        _vars += f" \"{name}\" : {{ \"value\": \"{var.value}\", \"var_type\": \"{var.var_type}\" }}, "
-                    if len(_vars) > 2:
-                        _vars = _vars[0:-2]
-                    _vars += "}"
 
-                    globvars = "{ \"power_on\": " + str(self.__strip.power_on).lower() + ", "
-                    globvars += " \"brightness\":" + str(self.__strip.brightness) + " }"
-                    print(f"{{ \":::data:\": {{ \"variables\": {_vars}, \"globvars\": {globvars} }} }}")
-                    last_send = time.perf_counter()
+            r, w, e = select.select([self.__s, *self.__s_clients], self.__s_clients, [], 0)
 
+            if (time.perf_counter() - last_send) > 0.5:
+                states = {
+                    "variables": self.__module_entry_instance.var.to_dict(),
+                    "globvars": {
+                        "power_on": self.__strip.power_on,
+                        "brightness": self.__strip.brightness
+                    }
+                }
+                buf = bytes([1]) + bytes(json.dumps(states), "ascii")
+
+                for ws in w:
+                    try:
+                        ws.send(buf)
+                    except BrokenPipeError:
+                        self.__s_clients.remove(ws)
+                        ws.close()
+
+                last_send = time.perf_counter()
+
+            for rs in r:
+                if rs is self.__s:
+                    c, a = self.__s.accept()
+                    self.__s_clients.append(c)
+                else:
+                    data = rs.recv(128)
+                    if not data:
+                        self.__s_clients.remove(rs)
+                        rs.close()
+                    else:
+                        self.__execute_command(data)
     
+    def __close_socket(self):
+        if (self.__s is None): return
+        r, w, e = select.select([self.__s, *self.__s_clients], self.__s_clients, [], 0)
+        for ws in w:
+            try:
+                ws.shutdown(socket.SHUT_RDWR)
+            except BrokenPipeError:
+                ws.close()
+            self.__s_clients.remove(ws)
+            ws.close()
+        self.__s.close()
+
+
+
+    def __execute_command(self, command):
+        """
+        command should be of type bytes
+        first byte indicates command type (currently setglob or setvar)
+        
+        for command type 1
+          byte 1 indicates which globvar
+          byte 2 indicates value
+        for command type 2
+          first 32 bytes are the var name
+            
+        """
+        # print(command.hex(" "))
+        if command[0] == 0:
+            if command[1] == 0:
+                self.__strip.power_on = (command[2] == 1)
+                print(f"Strip power: {self.__strip.power_on}")
+            elif command[1] == 1:
+                self.__strip.brightness = command[2]
+                print(f"Strip brightness: {self.__strip.brightness}")
+            else:
+                print(f"Unknown globvar {command[1]}.")
+        elif command[0] == 1:
+            name = command[3:3+command[1]].decode("ascii")
+            value = command[3+command[1]:3+command[1]+command[2]].decode("ascii")
+            if name in self.__module_entry_instance.var:
+                self.__module_entry_instance.var[name] = value
+            else:
+                print(f"Unknown variable {name}")
+        elif command[0] == 2:
+            self.__send_strip_buffer = (command[1] == 1)
+        else:
+            print("UNKNOWN COMMAND")
+
 
     def __module_loop(self):
         self.__module_entry_instance.on_start()
@@ -153,11 +219,14 @@ if __name__ == "__main__":
     parser.add_argument('--strip-config', help='Path to the strip config file.')
     parser.add_argument('--mode-path', help='Path of the folder the mode is in.')
     parser.add_argument('--mode-entry', help='Path of the module that is the entry-point of the module.')
+    parser.add_argument('--socket-file', help='The socket file the runtime will use to allow communication [default: /tmp/neo_runtime.sock].', default='/tmp/neo_runtime.sock')
+    parser.add_argument('--socket-enable', help='Wether to enable socket communication [default: true].', default=True)
     args = parser.parse_args()
 
     args.strip_config = args.strip_config.replace("\"", "")
     args.mode_path = args.mode_path.replace("\"", "")
     args.mode_entry = args.mode_entry.replace("\"", "")
+    args.socket_file = args.socket_file.replace("\"", "")
     if not path.exists(args.strip_config):
         print(f"Strip config not found ({args.strip_config}).")
         sys.exit(1)
@@ -172,6 +241,6 @@ if __name__ == "__main__":
     print(f"Module     : {args.mode_path}/{args.mode_entry}")
 
     print(f"> Starting \"{args.mode_path}\" in NeoRuntime.")
-    runtime = NeoRuntime(args.mode_path, args.mode_entry, args.strip_config)
+    runtime = NeoRuntime(args.mode_path, args.mode_entry, args.strip_config, args.socket_file)
     runtime.start()
     print ("> NeoRuntime exited...")

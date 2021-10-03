@@ -8,6 +8,7 @@
 const fs = require("fs");
 const fsPromises = fs.promises;
 const RuntimeProcess = require("./RuntimeProcess");
+const IPC = require("./IPC");
 let logger = require(__basedir + "/src/logger");
 const EventEmitter = require('events');
 
@@ -20,6 +21,8 @@ let modeId = null;
 let modeExitCode = 0;
 /** @type {RuntimeProcess} This is the current RuntimeProcess instance */
 let runtimeProcess = null;
+/** @type {IPC} The IPC instance, used to communicate with the script */
+let ipc = null;
 /** @type {EventEmitter} This is used to emit events when things change */
 const eventEmitter = new EventEmitter();
 /** @type {boolean} If this is true, we will not do things the usual way */
@@ -83,13 +86,6 @@ function setMode(_modeId) {
         return {success: false, reason: "unknown modeId"};
     }
     logger.info(`Changing mode to "${_modeId}".`);
-    
-    let globvarsTmp = {};
-    let variablesTmp = {};
-    if (runtimeProcess != null) {
-        globvarsTmp = runtimeProcess.globvars;
-        variablesTmp = runtimeProcess.variables;
-    }
 
     stopMode();
     
@@ -97,10 +93,9 @@ function setMode(_modeId) {
     neoModules.userData.config.activeMode = modeId;
     eventEmitter.emit("change", "mode", modeId);
 
-    runtimeProcess = new RuntimeProcess(getModePath(_modeId), onVariableChange, eventEmitter);
-    runtimeProcess.globvars = globvarsTmp;
-    runtimeProcess.variables = variablesTmp;
+    runtimeProcess = new RuntimeProcess(getModePath(_modeId), eventEmitter);
     startMode();
+
     return {success: true}
 };
 
@@ -194,7 +189,7 @@ function onVariableChange(location, name, newValue) {
  */
 function getGlobvars() {
     if (!modeRunning()) { return {}; }
-    return runtimeProcess.globvars;
+    return ipc.globvars;
 }
 
 /**
@@ -207,8 +202,15 @@ function getGlobvars() {
  */
 function setGlobvar(name, value) {
     if (!modeRunning()) { return; }
-    runtimeProcess.proc.stdin.write(`:::setglob: ${name}:${value}\n`);
-    return {success: true}
+    
+    switch(name) {
+        case "power_on":
+            return ipc.sendCommand(IPC.COMMAND.SET_GLOB, IPC.GLOBVAR.POWER_ON, (value) ? 1 : 0);
+        case "brightness":
+            return ipc.sendCommand(IPC.COMMAND.SET_GLOB, IPC.GLOBVAR.BRIGHTNESS, value);
+        default:
+            return {success: false, reason: "unknown globvar", detail: name};
+    }
 }
 
 /**
@@ -218,7 +220,7 @@ function setGlobvar(name, value) {
  */
 function getVariables() {
     if (!modeRunning()) { return {}; }
-    return runtimeProcess.variables;
+    return ipc.variables;
 }
 
 /**
@@ -231,8 +233,7 @@ function getVariables() {
  */
 function setVariable(name, value) {
     if (!modeRunning()) { return; }
-    runtimeProcess.proc.stdin.write(`:::setvar: ${name}:${value}\n`);
-    return {success: true}
+    return ipc.sendCommand(IPC.COMMAND.SET_VAR, name, value);
 }
 
 /**
@@ -281,6 +282,7 @@ function stopDebugger() {
 
 module.exports = (_neoModules) => {
     neoModules = _neoModules;
+    ipc = new IPC.IPC(neoModules.userData.config.neoRuntimeIPC.socketFile, eventEmitter);
     return {
         event: eventEmitter,
         modes: listModes,

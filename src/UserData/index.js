@@ -40,6 +40,9 @@ function ensureMainConfig() {
     if (config.DiscoveryServer.address == null) { config.DiscoveryServer.address = "https://erj46s.deta.dev"; }
     if (config.DiscoveryServer.broadcastSelf == null) { config.DiscoveryServer.broadcastSelf = false; }
 
+    if (config.neoRuntimeIPC == null) { config.neoRuntimeIPC = {}; }
+    if (config.neoRuntimeIPC.socketFile == null) { config.neoRuntimeIPC.socketFile = "/tmp/neo_runtime.sock"; }
+
     fse.writeFileSync(__datadir + "/config/config.ini", ini.encode(config))
 }
 

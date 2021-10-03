@@ -45,7 +45,7 @@
         }
         name = name.replace("variable/", "");
 
-        switch (value.var_type) {
+        switch (value.type) {
             case "COLOR":
                 if (value.value == null) {
                     delete colorVariables[name];
