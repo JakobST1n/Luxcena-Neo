@@ -82,7 +82,7 @@ function createOpenSocketNamespace(io) {
                 }
                 
                 session_tokens[token] = {
-                    expire: (~~(Date.now()) / 1000)+(86400),
+                    expire: (~~Date.now())+(86400),
                     host: socket.handshake.headers.host,
                     user: {username: user.username}
                 };
