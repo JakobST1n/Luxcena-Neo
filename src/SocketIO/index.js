@@ -8,7 +8,7 @@
  * @since  19.12.2019
  */
 
-let logger = require(__basedir + "/src/logger");
+let logger = require(__appdir + "/src/Logger");
 var exec = require('child_process').exec;
 var CryptoJS = require("crypto-js");
 let fs = require("fs");

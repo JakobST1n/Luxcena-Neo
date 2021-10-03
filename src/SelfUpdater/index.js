@@ -2,14 +2,14 @@ let fs = require("fs-extra");
 let url = require("url");
 let request = require('request');
 let exec = require("child_process").exec;
-let logger = require(__basedir + "/src/logger");
+let logger = require(__appdir + "/src/Logger");
 
 let neoModules;
 
 class VersionChecker {
 
     constructor() {
-        this.CPackageJson = JSON.parse(fs.readFileSync(__basedir + "/package.json"));
+        this.CPackageJson = JSON.parse(fs.readFileSync(__appdir + "/package.json"));
         this.version = this.CPackageJson["version"];
         this.repoLink = this.CPackageJson["repository"]["url"];
 

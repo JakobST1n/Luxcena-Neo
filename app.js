@@ -2,22 +2,27 @@ let fse = require("fs-extra");
 let events = require('events');
 
 // Firstly we set up all globals, check that the usrData dir exists, if not, we run the setup
-let userDir = "/home/lux-neo";
-if (process.argv.length >= 3) { userDir = process.argv[2]; }
-if (!fse.existsSync(userDir + "/userdata/")) {
+global.__appdir    = "/opt/luxcena-neo";
+global.__configdir = "/etc/luxcena-neo";
+global.__datadir   = "/var/luxcena-neo";
+global.__logdir    = "/var/log/luxcena-neo";
+
+if ((process.argv.length >= 3) && (process.argv[2] == "dev")) {
+    global.__appdir    = __dirname;
+    global.__configdir = __dirname + "/tmp/config";
+    global.__datadir   = __dirname + "/tmp/userdata";
+    global.__logdir    = __dirname + "/tmp/logs";
+}
+if (!fse.existsSync(global.__datadir)) {
     console.log(`CRITICAL UserDir not found '${userDir}'! Exiting...`);
     process.exit(1);
 }
 
-// Global path variables
-global.__basedir = __dirname + "";
-global.__datadir = userDir + "/userdata";
-global.__logdir = userDir + "/logs";
 // global eventEmitter
 global.__event = new events.EventEmitter();
 
 // Secondly we setup the logger,
-let logger = require("./src/logger");
+let logger = require("./src/Logger");
 logger.info("Starting Luxcena-Neo...");
 
 let neoModules = {};
@@ -33,14 +38,14 @@ let express = require("express");
 let https = require("https");
 let app = express();
 let server = https.createServer({
-        key: fse.readFileSync(__datadir + "/config/certs/privkey.pem"),
-        cert: fse.readFileSync(__datadir + "/config/certs/cert.pem")
+        key: fse.readFileSync(__configdir + "/certs/privkey.pem"),
+        cert: fse.readFileSync(__configdir + "/certs/cert.pem")
     },
     app
 );
 let io = require("socket.io")(server);
 require("./src/SocketIO")(neoModules, io);
-app.use("/", express.static(__basedir + "/public"));
+app.use("/", express.static(__appdir + "/public"));
 
 server.listen(neoModules.userData.config.HTTP.port,  () => {
     let host = server.address().address;

@@ -65,16 +65,52 @@ if [ "$action" == "update" ]; then
       exit 1
   fi
 
+  # Stop the service if it is running already
   systemctl stop luxcena-neo
-  runuser -l 'lux-neo' -c 'git -C ~/src pull'
 
+  # Go to source code directory
+  WDIR="/opt/luxcena-neo"
+  #cd "$WDIR"
+
+  # Fetch newest changes on branch
+  runuser -l 'lux-neo' -c "git -C $WDIR pull" || die
+
+  # Add node repo
+  curl -fsSL https://deb.nodesource.com/setup_14.x | bash - || die
+
+  # Make sure nodejs and prerequisites is installed
+  apt -qy install nodejs python-pip || die
+
+  # Make sure we have python virtualenv installed
+  pip3 install virtualenv || die
+
+  # Create and configure python virtualenv
+  runuser -l 'lux-neo' -c "rm -rf $WDIR/NeoRuntime/Runtime/venv" || die
+  runuser -l 'lux-neo' -c "virtualenv -p /usr/bin/python3 $WDIR/NeoRuntime/Runtime/venv" || die
+  runuser -l 'lux-neo' -c "source $WDIR/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x" || die
+
+  # Build and run all npm scripts
   if [ "$2" != "skipNode" ]; then
-      runuser -l 'lux-neo' -c 'export NODE_ENV=production; npm --prefix ~/src install ~/src --only=production'
+      runuser -l 'lux-neo' -c "export NODE_ENV=development; npm --prefix $WDIR install $WDIR" || die
   fi
+  ##runuser -l 'lux-neo' -c "cd $WDIR && npm run build:frontend" || die
+  ##runuser -l 'lux-neo' -c "cd $WDIR && npm run build:fontawesome" || die
+  ##runuser -l 'lux-neo' -c "cd $WDIR && npm run build:dialog-polyfill" || die
+  runuser -l 'lux-neo' -c "npm --prefix \"$WDIR\" run build:frontend" || die
+  runuser -l 'lux-neo' -c "npm --prefix \"$WDIR\" run build:fontawesome" || die
+  runuser -l 'lux-neo' -c "npm --prefix \"$WDIR\" run build:dialog-polyfill" || die
 
-  cp /home/lux-neo/src/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh
+
+  # Install new cli script
+  cp /opt/luxcena-neo/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh || die
+  
+  # Install updated systemd script
+  cp /opt/luxcena-neo/bin/luxcena-neo.service /etc/systemd/system/luxcena-neo.service || die
+  systemctl daemon-reload || die
+
   printf "Update complete.\n"
   systemctl start luxcena-neo
+  systemctl enable luxcena-neo
   exit 0
 
 elif [ "$action" == "uninstall" ]; then
@@ -83,13 +119,14 @@ elif [ "$action" == "uninstall" ]; then
     tput sgr0
     printf '\e[93m%s\e[0m\n' "--------------------------"
     tput setaf 8
-    printf "By uninstalling Luxcena-Neo you will loose all you data, including your scripts.\n\n"
+    printf "By uninstalling Luxcena-Neo you might loose all data, including your scripts.\n\n"
 
     dlgYN "Are you sure you want to uninstall?" res
     if [ $res -eq 1 ]; then
         systemctl stop luxcena-neo
         deluser lux-neo
         rm -rf /home/lux-neo
+	rm -rf /opt/luxcena-neo
         rm /etc/systemd/system/luxcena-neo.service
         rm /usr/bin/luxcena-neo.sh
         rm /usr/bin/lux-neo
@@ -97,6 +134,7 @@ elif [ "$action" == "uninstall" ]; then
 
         tput setaf 2
         printf "\nEverything should now be gone.\n"
+        printf "/etc/luxcena-neo and /var/log/luxcena-neo is not removed.\n"
         tput sgr0
         tput setaf 8
         printf "Well, some dependencies still exists. Those are:\n"
@@ -104,9 +142,6 @@ elif [ "$action" == "uninstall" ]; then
         printf " - packages (nodejs scons python-dev swig)\n"
         tput sgr0
     fi
-
-elif [ "$action" == "conf" ]; then
-    nano /home/lux-neo/userdata/config/strip.json
 
 elif [ "$action" == "start" ]; then
     systemctl start luxcena-neo
@@ -141,23 +176,23 @@ elif [ "$action" == "status" ]; then
 elif [ "$action" == "log" ]; then
     if [ "$2" == "service" ]; then
         printf '\e[93m%s\e[0m\n' "━━━Service log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
-        tail -F -n 20 /home/lux-neo/logs/service.log
+        tail -F -n 20 /var/log/luxcena-neo/service.log
     fi
     if [ "$2" == "app" ]; then
         printf '\e[93m%s\e[0m\n' "━━━App log (press ctrl+c to exit)━━━━━━━━━━━━━━━━━━"
-        tail -F -n 20 /home/lux-neo/logs/logger.log
+        tail -F -n 20 /var/log/luxcena-neo/logger.log
     fi
 
 elif [ "$action" == "version" ] || [ "$action" == "v" ]; then
     printf "╭─────────────────────╮\n"
     printf "│ Version: Unknown    │\n"
-    printf "│ branch : $(git -C /home/lux-neo/src branch | grep \* | cut -d ' ' -f2)    │\n"
+    printf "│ branch : $(git -C /opt/luxcena-neo branch | grep \* | cut -d ' ' -f2)    │\n"
     printf "╰─────────────────────╯\n\n"
 
 elif [ "$action" == "selectBranch" ]; then
-    printf "Current $(git -C /home/lux-neo/src branch | grep \* | cut -d ' ' -f2)Branch \n"
-    runuser -l 'lux-neo' -c "git -C ~/src stash"
-    runuser -l 'lux-neo' -c "git -C ~/src checkout $2" || printf "\e[91mYou should now run \e[90m'sudo lux-neo update'\e[91m!\n"
+    printf "Current $(git -C /opt/luxcena-neo branch | grep \* | cut -d ' ' -f2)Branch \n"
+    runuser -l 'lux-neo' -c "git -C /opt/luxcena-neo stash"
+    runuser -l 'lux-neo' -c "git -C /opt/luxcena-neo checkout $2" || printf "\e[91mYou should now run \e[90m'sudo lux-neo update'\e[91m!\n"
 
 else
     usage

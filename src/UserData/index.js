@@ -6,7 +6,7 @@
  * @since  19.12.2019
  */
 
-let logger = require(__basedir + "/src/logger");
+let logger = require(__appdir + "/src/Logger");
 let fse = require("fs-extra");
 let ini = require('ini');
 
@@ -16,7 +16,7 @@ let neoModules;
  * This method will ensure that all required fields are in config.ini
  */
 function ensureMainConfig() {
-    var config = ini.decode(fse.readFileSync(__datadir + "/config/config.ini", 'utf-8'))
+    var config = ini.decode(fse.readFileSync(__configdir + "/config.ini", 'utf-8'))
 
     if (config.instanceName == null) { config.instanceName = "neoStrip"; }
     if (config.activeMode == null) { config.activeMode = "builtin/static"; }
@@ -43,14 +43,14 @@ function ensureMainConfig() {
     if (config.neoRuntimeIPC == null) { config.neoRuntimeIPC = {}; }
     if (config.neoRuntimeIPC.socketFile == null) { config.neoRuntimeIPC.socketFile = "/tmp/neo_runtime.sock"; }
 
-    fse.writeFileSync(__datadir + "/config/config.ini", ini.encode(config))
+    fse.writeFileSync(__configdir + "/config.ini", ini.encode(config))
 }
 
 /**
  * This method will ensure that all required fields are in config.ini
  */
 function ensureStripConfig() {
-    var config = ini.decode(fse.readFileSync(__datadir + "/config/strip.ini", 'utf-8'))
+    var config = ini.decode(fse.readFileSync(__configdir + "/strip.ini", 'utf-8'))
 
     if (config.DEFAULT == null) { config.DEFAULT = {}; }
     if (config.DEFAULT.led_pin == null) { config.DEFAULT.led_pin = 18; }
@@ -61,7 +61,7 @@ function ensureStripConfig() {
     if (config.DEFAULT.segments == null) { config.DEFAULT.segments = ""; }
     if (config.DEFAULT.matrix == null) { config.DEFAULT.matrix = ""; }
 
-    fse.writeFileSync(__datadir + "/config/strip.ini", ini.encode(config))
+    fse.writeFileSync(__configdir + "/strip.ini", ini.encode(config))
 }
 
 /**
@@ -73,24 +73,24 @@ function init() {
     logger.info("Ensuring all folder in UserDir exists...");
 
     fse.ensureDirSync(__datadir + "/");
-    fse.ensureDirSync(__datadir + "/config/");
-    fse.ensureDirSync(__datadir + "/config/certs");
+    fse.ensureDirSync(__configdir);
+    fse.ensureDirSync(__configdir + "/certs");
     fse.ensureDirSync(__datadir + "/userCode/");
     fse.ensureDirSync(__datadir + "/remoteCode/");
 
     // Generate config-files
-    if (!fse.existsSync(__datadir + "/config/config.ini")) {
-        fse.closeSync(fse.openSync(__datadir + "/config/config.ini", 'w'));
+    if (!fse.existsSync(__configdir + "/config.ini")) {
+        fse.closeSync(fse.openSync(__configdir + "/config.ini", 'w'));
     }
     ensureMainConfig();
     
-    if (!fse.existsSync(__datadir + "/config/strip.ini")) {
-        fse.closeSync(fse.openSync(__datadir + "/config/strip.ini", 'w'));
+    if (!fse.existsSync(__configdir + "/strip.ini")) {
+        fse.closeSync(fse.openSync(__configdir + "/strip.ini", 'w'));
     }
     ensureStripConfig();
 
-    if (!fse.existsSync(__datadir + "/config/users.ini")) {
-        fse.writeFileSync(__datadir + "/config/users.ini", ini.encode({
+    if (!fse.existsSync(__configdir + "/users.ini")) {
+        fse.writeFileSync(__configdir + "/users.ini", ini.encode({
             "neo": {
                 "password": "5adbc90fb4716fff62d9cf634837e22f29b011803ba29cee51f921b920fa941651737bd15d00dc72e4cbeee5e64e06ec99cc50ea917285a029797a98740cce0f",
                 "salt": "59b6de1040f3ae3c63de984ca5d61ef46f41dc6ecead3a9d5dab69f0bb3636aa49017e179b74dbcdb407f62bc139a7d55aa78fe2bbdd5327609ea124b2fa03b1"
@@ -196,11 +196,11 @@ function getFullConfig(file, addSetters=true) {
  * @return {object} Standardform return object
  */
  function saveUser(username, salt, password) {
-    let config = ini.decode(fse.readFileSync(__datadir + "/config/users.ini", 'utf-8'))
+    let config = ini.decode(fse.readFileSync(__configdir + "/users.ini", 'utf-8'))
     config[username] = {}
     config[username].salt = salt
     config[username].password = password
-    fse.writeFileSync(__datadir + "/config/users.ini", ini.encode(config))
+    fse.writeFileSync(__configdir + "/users.ini", ini.encode(config))
     return {success: true}
 }
 
@@ -210,7 +210,7 @@ function getFullConfig(file, addSetters=true) {
  * @return {object} with username, salt and hash properties.
  */
 function getUser(username) {
-    let config = ini.decode(fse.readFileSync(__datadir + "/config/users.ini", 'utf-8'))
+    let config = ini.decode(fse.readFileSync(__configdir + "/users.ini", 'utf-8'))
     if (Object.prototype.hasOwnProperty.call(config, username)) {
         return {...config[username], username: username}
     }
@@ -223,7 +223,7 @@ function getUser(username) {
  * @return {array} usernames
  */
 function getUsers() {
-    let config = ini.decode(fse.readFileSync(__datadir + "/config/users.ini", "utf-8"));
+    let config = ini.decode(fse.readFileSync(__configdir + "/users.ini", "utf-8"));
     let users = [];
     for (const username of Object.keys(config)) {
         users.push(username);
@@ -237,11 +237,11 @@ function getUsers() {
  * @return {object} Standardform success object.
  */
 function deleteUser(username) {
-    let config = ini.decode(fse.readFileSync(__datadir + "/config/users.ini", 'utf-8'))
+    let config = ini.decode(fse.readFileSync(__configdir + "/users.ini", 'utf-8'))
     if (config.length <= 1) { return {success: false, reason: "cannot delete only user"}; }
     if (!Object.prototype.hasOwnProperty.call(config, username)) { return {success: false, reason: "user not found", detail: username}; }
     delete config[username];
-    fse.writeFileSync(__datadir + "/config/users.ini", ini.encode(config));
+    fse.writeFileSync(__configdir + "/users.ini", ini.encode(config));
     return {success: true}
 }
 
@@ -257,7 +257,7 @@ function deleteUser(username) {
 function createNewUserMode(name, template) {
     source_script = null;
     if ((template === "template/base") || (template === "") || (template == null)) {
-        source_script = __basedir + "/NeoRuntime/special/template_base/";
+        source_script = __appdir + "/NeoRuntime/special/template_base/";
     } else {
         source_script = neoModules.neoRuntimeManager.getModePath(template);
     }
@@ -313,7 +313,7 @@ module.exports = (_neoModules) => {
         },
         strip: {
             get: () => {
-                let c = getFullConfig(`${__datadir}/config/strip.ini`, addSetters=false); 
+                let c = getFullConfig(`${__configdir}/strip.ini`, addSetters=false); 
                 c.DEFAULT.matrix = JSON.parse(c.DEFAULT.matrix);
                 c.DEFAULT.segments = c.DEFAULT.segments.split(" ");
                 return c.DEFAULT;
@@ -321,10 +321,10 @@ module.exports = (_neoModules) => {
             set: (c) => {
                 c.segments = c.segments.join(" ");
                 c.matrix = JSON.stringify(c.matrix);
-                return saveConfig(`${__datadir}/config/strip.ini`, {DEFAULT: c}, removeSetters=false);
+                return saveConfig(`${__configdir}/strip.ini`, {DEFAULT: c}, removeSetters=false);
             },
         },
-        config: getFullConfig(`${__datadir}/config/config.ini`),
+        config: getFullConfig(`${__configdir}/config.ini`),
         mode: {
             create: createNewUserMode,
             delete: deleteUserMode
