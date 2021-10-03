@@ -59,7 +59,7 @@ class NeoRuntime:
         self.__module_th = None
         self.__socket_file = socket_file
         self.__send_strip_buffer = False
-        
+
 
     def start(self):
         # The mode is starting in it's own thread
@@ -82,7 +82,7 @@ class NeoRuntime:
     def __bind_socket(self):
         if path.exists(self.__socket_file):
             remove(self.__socket_file)
-        
+
         self.__s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.__s.bind(self.__socket_file)
         self.__s.listen(1)
@@ -126,7 +126,7 @@ class NeoRuntime:
                         rs.close()
                     else:
                         self.__execute_command(data)
-    
+
     def __close_socket(self):
         if (self.__s is None): return
         r, w, e = select.select([self.__s, *self.__s_clients], self.__s_clients, [], 0)
@@ -145,22 +145,20 @@ class NeoRuntime:
         """
         command should be of type bytes
         first byte indicates command type (currently setglob or setvar)
-        
+
         for command type 1
           byte 1 indicates which globvar
           byte 2 indicates value
         for command type 2
           first 32 bytes are the var name
-            
+
         """
         # print(command.hex(" "))
         if command[0] == 0:
             if command[1] == 0:
                 self.__strip.power_on = (command[2] == 1)
-                print(f"Strip power: {self.__strip.power_on}")
             elif command[1] == 1:
                 self.__strip.brightness = command[2]
-                print(f"Strip brightness: {self.__strip.brightness}")
             else:
                 print(f"Unknown globvar {command[1]}.")
         elif command[0] == 1:
@@ -236,7 +234,7 @@ if __name__ == "__main__":
     if not path.exists(f"{args.mode_path}/{args.mode_entry}.py"):
         print(f"Mode entry not found in mode path ({args.mode_path}/{args.mode_entry}).")
         sys.exit(1)
-    
+
     print(f"StripConfig: {args.strip_config}")
     print(f"Module     : {args.mode_path}/{args.mode_entry}")
 

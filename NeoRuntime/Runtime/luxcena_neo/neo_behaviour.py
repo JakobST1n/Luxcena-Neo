@@ -55,6 +55,7 @@ class VariableType(Enum):
     INT = 2
     FLOAT = 3
     COLOR = 4
+    BOOL = 5
 
 class Variables:
 
@@ -248,3 +249,17 @@ class FloatVariable(Variable):
 
     def to_dict(self):
         return {"name": self.name, "value": self.value, "type": self.var_type, "min": self.__min, "max": self.__max}
+
+
+
+class BooleanVariable(Variable):
+
+    def __init__(self, name: str, default: bool, **kwargs):
+        super().__init__(name, default, VariableType.BOOL)
+    
+    @Variable.value.setter
+    def value(self, value):
+        try:
+            value = bool(value)
+        except:
+            print(f"Attempted to set {self.name} to \"{value}\", which is not a valid bool...")
