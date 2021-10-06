@@ -194,6 +194,8 @@ function createAuthorizedNamespace(io) {
             fn({success: true});
         });
         socket.on("system:update_version", () => {
+            let p = exec('luxcena-neo-cli.sh update');
+            p.unref();
         });
 
         /* SSLCert */

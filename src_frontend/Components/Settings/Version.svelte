@@ -20,6 +20,11 @@
             });
         });
     }
+
+    let updateVersionPromise;
+    function doUpdate() {
+        authorizedSocket.emit("system:update_version");
+    }
     
     onMount(async() => {
         authorizedSocket.emit("version:branch");
@@ -53,6 +58,7 @@
     <p><span class="label">Current branch</span> <PrettyVar bind:varText={branch}/></p>
     {#if newVer != version}
     <p><span class="update-available">Version <PrettyVar bind:varText={newVer} /> available.</span></p>
+    <FloatingButton on:click={doUpdate} bind:loadingPromise={updateVersionPromise} fullWidth=true>Update luxcena-neo</FloatingButton>
     {/if}
     <div class="button-row">
         <FloatingButton on:click={checkForUpdate} bind:loadingPromise={checkVersionPromise} fullWidth=true>Check for updates</FloatingButton>
