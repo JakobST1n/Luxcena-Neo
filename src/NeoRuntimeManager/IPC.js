@@ -6,7 +6,7 @@
  */
 
 const net = require("net");
-let logger = require(__basedir + "/src/logger");
+let logger = require(__appdir + "/src/logger");
 
 /** @type {int} How long wait between each reconnection attempt */
 const RECONNECT_INTERVAL = 1000;

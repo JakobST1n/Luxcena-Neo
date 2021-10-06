@@ -12,7 +12,7 @@ Tail = require('tail').Tail;
  */
 
 webpackLaunchCommand = ["npm", "run", "dev:frontend"];
-nodejsLaunchCommand  = ["node", "app.js", `"${__dirname}/tmp"`];
+nodejsLaunchCommand  = ["node", "app.js", `dev`];
 mkdocsLaunchCommand  = ["mkdocs", "build"];
 
 nodejsFileWatcherPaths = [

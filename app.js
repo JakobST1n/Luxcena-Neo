@@ -13,7 +13,7 @@ if ((process.argv.length >= 3) && (process.argv[2] == "dev")) {
     global.__datadir   = __dirname + "/tmp/userdata";
     global.__logdir    = __dirname + "/tmp/logs";
 }
-if (!fse.existsSync(global.__datadir)) {
+if (!fse.existsSync(global.__appdir)) {
     console.log(`CRITICAL UserDir not found '${userDir}'! Exiting...`);
     process.exit(1);
 }
