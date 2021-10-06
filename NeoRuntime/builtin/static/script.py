@@ -1,16 +1,17 @@
-from luxcena_neo import NeoBehaviour, VariableType, utils
+from luxcena_neo import NeoBehaviour, ColorVariable, utils
 import time
 
 class Main(NeoBehaviour):
     
     def declare_variables(self):
-        self.vars.declare("color", "#fafafa", VariableType.COLOR, self.set_color)
+        self.declare(ColorVariable("color", "#fafafa", on_change=self.set_color))
+        self.declare(ColorVariable("color2", "#fafafa", on_change=self.set_color))
 
     def on_start(self):
-        print(f"Script started, color: {self.vars.color}")
-        self.set_color(self.vars.color)
+        print(f"Script started, color: {self.var.color}")
+        self.set_color(self.var.color)
         strip.power_on = True
-        # self.current_color = self.vars.color
+        self.current_color = self.var.color
 
     def set_color(self, value):
         print(f"Color var changed: {value}")
