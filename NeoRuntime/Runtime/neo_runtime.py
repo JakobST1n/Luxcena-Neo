@@ -13,6 +13,7 @@ import select
 import traceback
 import socket
 from os import path, remove
+from inspect import signature
 
 from luxcena_neo.strip import Strip
 
@@ -125,7 +126,10 @@ class NeoRuntime:
                         self.__s_clients.remove(rs)
                         rs.close()
                     else:
-                        self.__execute_command(data)
+                        try:
+                            self.__execute_command(data)
+                        except Exception as e:
+                            traceback.print_exc()
 
     def __close_socket(self):
         if (self.__s is None): return
@@ -162,7 +166,7 @@ class NeoRuntime:
             else:
                 print(f"Unknown globvar {command[1]}.")
         elif command[0] == 1:
-            name = command[3:3+command[1]].decode("ascii")
+            name  = command[3:3+command[1]].decode("ascii")
             value = command[3+command[1]:3+command[1]+command[2]].decode("ascii")
             if name in self.__module_entry_instance.var:
                 self.__module_entry_instance.var[name] = value
@@ -193,22 +197,37 @@ class NeoRuntime:
 
 
     def __module_tick(self, runningtime, deltatime):
-        self.__module_entry_instance.each_tick()
+        if (len(signature(self.__module_entry_instance.each_tick).parameters) == 2):
+            self.__module_entry_instance.each_tick(deltatime)
+        else:
+            self.__module_entry_instance.each_tick()
 
         if (runningtime - self.__module_last_second > 1):
-            self.__module_entry_instance.each_second()
+            if (len(signature(self.__module_entry_instance.each_second).parameters) == 2):
+                self.__module_entry_instance.each_second(time.perf_counter() - self.__module_last_second)
+            else:
+                self.__module_entry_instance.each_second()
             self.__module_last_second = time.perf_counter()
 
-        if (((runningtime - self.__module_last_minute) % 60) > 1):
-            self.__module_entry_instance.each_minute()
+        if (((runningtime - self.__module_last_minute) % 60) >= 1):
+            if (len(signature(self.__module_entry_instance.each_minute).parameters) == 2):
+                self.__module_entry_instance.each_minute(time.perf_counter() - self.__module_last_minute)
+            else:
+                self.__module_entry_instance.each_minute()
             self.__module_last_minute = time.perf_counter()
 
-        if (((runningtime - self.__module_last_hour) % 3600) > 1):
-            self.__module_entry_instance.each_minute()
+        if (((runningtime - self.__module_last_hour) % 3600) >= 1):
+            if (len(signature(self.__module_entry_instance.each_hour).parameters) == 2):
+                self.__module_entry_instance.each_hour(time.perf_counter() - self.__module_last_hour)
+            else:
+                self.__module_entry_instance.each_hour()
             self.__module_last_hour = time.perf_counter()
 
-        if (((runningtime - self.__module_last_day) % 86400) > 1):
-            self.__module_entry_instance.each_minute()
+        if (((runningtime - self.__module_last_day) % 86400) >= 1):
+            if (len(signature(self.__module_entry_instance.each_day).parameters) == 2):
+                self.__module_entry_instance.each_day(time.perf_counter() - self.__module_last_day)
+            else:
+                self.__module_entry_instance.each_day()
             self.__module_last_day = time.perf_counter()
 
 
