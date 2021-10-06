@@ -121,27 +121,33 @@ class IPC {
      * for such events. */
     sendCommand(commandType, name, value) {
         if (this.connected) {
-            let buf = Buffer.allocUnsafe(128);  // It's fine, we know what we are doing
-            // let buf = Buffer.alloc(128);
+            let buf;
     
             switch (commandType) {
                 case (COMMAND.SET_GLOB):
+                    buf = Buffer.allocUnsafe(3);
                     buf[1] = name;
                     buf[2] = value;
                     break;
+
                 case (COMMAND.SET_VAR):
                     if (name.length > 32) { return {success: false, reason: "name too long", detail: "max size of name is 32 bytes"}; }
-                    if (name.length > 93) { return {success: false, reason: "value too long", detail: "max size of value is 93 bytes"}; }
+                    if (value.length > 93) { return {success: false, reason: "value too long", detail: "max size of value is 93 bytes"}; }
+                    buf = Buffer.allocUnsafe(3 + name.length + value.length);
                     buf[1] = name.length;
                     buf[2] = value.length;
                     buf.write(name,  3,             name.length,  "ascii");
                     buf.write(value, 3+name.length, value.length, "ascii");
                     break;
+
                 case (COMMAND.SET_SEND_STRIP_BUF):
+                    buf = Buffer.allocUnsafe(2);
                     buf[1] = (name) ? 1 : 0;
+                    break;
+
                 default:
-                    logger.info(`IPC UNKNOWN COMMANDTYPE ${commandType}`)
-                    return;
+                    logger.warning(`IPC UNKNOWN COMMANDTYPE ${commandType}`)
+                    return {success: false, reason: "ipc command unknown", detail: commandType};
             }
 
             buf[0] = commandType;
