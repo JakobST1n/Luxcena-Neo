@@ -2,7 +2,7 @@ import json
 from os import path
 from enum import Enum
 from .strip import detect_format_convert_color
-from .color_utils import rgb_from_24bit, hex_from_24bit
+from .color_utils import rgb_from_twentyfour_bit, hex_from_twentyfour_bit
 
 class NeoBehaviour:
     """
