@@ -6,4 +6,4 @@
 
 #runuser -l pi -c "export NODE_ENV=production; node ~/luxcena-neo-install/src/app.js"
 export NODE_ENV=development
-node /opt/luxcena-neo/app.js >> /var/log/luxcena-neo/service.log
+node /opt/luxcena-neo/app.js >> /var/log/luxcena-neo/service.log 2>&1
