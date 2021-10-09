@@ -79,15 +79,15 @@ if [ "$action" == "update" ]; then
   curl -fsSL https://deb.nodesource.com/setup_14.x | bash - || die
 
   # Make sure nodejs and prerequisites is installed
-  apt -qy install nodejs python-pip || die
+  apt -qy install nodejs python3-pip || die
 
   # Make sure we have python virtualenv installed
   pip3 install virtualenv || die
 
   # Create and configure python virtualenv
-  runuser -l 'lux-neo' -c "rm -rf $WDIR/NeoRuntime/Runtime/venv" || die
-  runuser -l 'lux-neo' -c "virtualenv -p /usr/bin/python3 $WDIR/NeoRuntime/Runtime/venv" || die
-  runuser -l 'lux-neo' -c "source $WDIR/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x" || die
+  runuser -l 'lux-neo' -s /bin/bash -c "rm -rf $WDIR/NeoRuntime/Runtime/venv" || die
+  runuser -l 'lux-neo' -s /bin/bash -c "virtualenv -p /usr/bin/python3 $WDIR/NeoRuntime/Runtime/venv" || die
+  runuser -l 'lux-neo' -s /bin/bash -c "source $WDIR/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x" || die
 
   # Build and run all npm scripts
   if [ "$2" != "skipNode" ]; then
