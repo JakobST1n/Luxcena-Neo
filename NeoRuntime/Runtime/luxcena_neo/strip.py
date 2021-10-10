@@ -1,10 +1,6 @@
 import json
 from os import path
-<<<<<<< Updated upstream
 import rpi_ws281x as ws
-=======
-# from .neopixel import *
->>>>>>> Stashed changes
 from .matrix import Matrix, get_segment_range
 from .power_calc import calcCurrent
 
