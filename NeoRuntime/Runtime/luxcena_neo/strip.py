@@ -1,6 +1,6 @@
 import json
 from os import path
-from .neopixel import *
+import rpi_ws281x as ws
 from .matrix import Matrix, get_segment_range
 from .power_calc import calcCurrent
 
@@ -10,11 +10,11 @@ class Strip:
     def __init__(self, strip_conf):
         self.SEGMENTS = strip_conf["segments"]
 
-        self.LED_FREQ_HZ = strip_conf["led_freq_hz"]  # LED signal frequency in hertz (usually 800khz)
-        self.LED_CHANNEL = strip_conf["led_channel"]  # Set to '1' for GPIOs 13, 19, 41, 45, 53
+        self.LED_FREQ_HZ = int(strip_conf["led_freq_hz"])  # LED signal frequency in hertz (usually 800khz)
+        self.LED_CHANNEL = int(strip_conf["led_channel"])  # Set to '1' for GPIOs 13, 19, 41, 45, 53
         self.LED_INVERT  = strip_conf["led_invert"]   # True to invert the signal, (when using NPN transistor level shift)
-        self.LED_PIN     = strip_conf["led_pin"]      # 18 uses PWM, 10 uses SPI /dev/spidev0.0
-        self.LED_DMA     = strip_conf["led_dma"]      # DMA channel for generating the signal, on the newer ones, try 10
+        self.LED_PIN     = int(strip_conf["led_pin"])      # 18 uses PWM, 10 uses SPI /dev/spidev0.0
+        self.LED_DMA     = int(strip_conf["led_dma"])      # DMA channel for generating the signal, on the newer ones, try 10
         self.LED_COUNT   = sum(self.SEGMENTS)        # Number of LEDs in strip
 
         if ("color_calibration" in strip_conf) and (strip_conf["color_calibration"] != ""):
@@ -26,15 +26,16 @@ class Strip:
         self.COLORSTATE = [0 for x in range(self.LED_COUNT)]
 
         self.LED_BRIGHTNESS = 255
-
-        self.strip = Adafruit_NeoPixel(
+        
+        self.strip = ws.Adafruit_NeoPixel(
             self.LED_COUNT,
             self.LED_PIN,
             self.LED_FREQ_HZ,
             self.LED_DMA,
             self.LED_INVERT,
             self.LED_BRIGHTNESS,
-            self.LED_CHANNEL
+            self.LED_CHANNEL,
+            strip_type=ws.WS2812_STRIP
         )
 
         self.strip.begin()
@@ -86,15 +87,17 @@ class Strip:
         self.__power_on = value
         if (self.power_on):
             self.__actual_brightness = self.__brightness
-            # self.strip.setBrightness(self.__brightness)
+            self.strip.setBrightness(self.__brightness)
+            self.strip.show()
         else:
             self.__actual_brightness = 0
-            # self.strip.setBrightness(0)
+            self.strip.setBrightness(0)
+            self.strip.show()
         self.save_globvars()
 
     @property
     def brightness(self):
-        # return self.strip.getBrightness()
+        #return self.strip.getBrightness()
         return self.__actual_brightness
 
     @brightness.setter
@@ -103,10 +106,11 @@ class Strip:
             self.__brightness = value
             if (self.power_on):
                 self.__actual_brightness = value
-                # self.strip.setBrightness(value)
+                self.strip.setBrightness(value)
+                self.strip.show()
             self.save_globvars()
         else:
-            raise Exception(f"Value ({value}) outside allowed range (0-255)")
+            raise Exception("Value ({}) outside allowed range (0-255)".format(value))
 
     def show(self):
         """Update the display with the data from the LED buffer."""
@@ -118,7 +122,7 @@ class Strip:
         """
         c = detect_format_convert_color(*color)
         self.TMPCOLORSTATE[n] = c
-        # self.strip.setPixelColor(n, )
+        self.strip.setPixelColor(n, c)
 
     def set_pixel_color_XY(self, x, y, *color):
         """Set LED at position n to the provided 24-bit color value (in RGB order).
@@ -161,7 +165,7 @@ def color_from_hex(hex_color: str):
     value = hex_color.lstrip('#')
     lv = len(value)
     rgb = tuple(int(value[i:i+lv//3], 16) for i in range(0, lv, lv//3))
-    return color_from_rgb(red=rgb[1], green=rgb[0], blue=rgb[2])
+    return color_from_rgb(red=rgb[0], green=rgb[1], blue=rgb[2])
 
 
 def detect_format_convert_color(*color) -> int:

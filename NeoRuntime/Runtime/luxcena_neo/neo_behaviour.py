@@ -61,7 +61,7 @@ class Variables:
 
     def __init__(self, package_path):
         self.__vars = {}
-        self.__vars_save_file = f"{package_path}/state.json"
+        self.__vars_save_file = "{}/state.json".format(package_path)
         self.__saved_variables = {}
         self.read_saved_variables()
     
@@ -109,7 +109,7 @@ class Variables:
     def declare(self, variable):
         """ Declare a new variable. """
         if variable.name in self.__vars:
-            raise Exception(f"Variable with name {variable.name} already defined.")
+            raise Exception("Variable with name {} already defined.".format(variable.name))
         if variable.name in self.__saved_variables:
             variable.value = self.__saved_variables[variable.name]
 
@@ -164,7 +164,7 @@ class Variable:
         return {"name": self.name, "value": self.value, "type": self.var_type}
     
     def __str__(self):
-        return f"{self.name}: {self.value}"
+        return "{}: {}".format(self.name, self.value)
 
     def set_save_func(self, save_func):
         self.__save_func = save_func
@@ -173,13 +173,13 @@ class ColorVariable(Variable):
 
     def __init__(self, name: str, *color, **kwargs):
         if not self.verify_color(*color):
-            raise Exception(f"Invalid color {color}")
+            raise Exception("Invalid color {}".format(color))
         super().__init__(name, self.extract_interesting(*color), VariableType.COLOR, **kwargs)
     
     @Variable.value.setter
     def value(self, *color):
         if not self.verify_color(*color):
-            print(f"Attempting to set {self.name} to invalid value {color}")
+            print("Attempting to set {} to invalid value {}".format(self.name, color))
             return
         super(ColorVariable, type(self)).value.fset(self, self.extract_interesting(*color))
 
@@ -218,9 +218,9 @@ class IntegerVariable(Variable):
             if (self.__min <= value <= self.__max):
                 super(ColorVariable, type(self)).value.fset(self, value)
             else:
-                print(f"Attempted to set {self.name} to {value} but range is [{self.__min},{self.__max}].")
+                print("Attempted to set {} to {} but range is [{},{}].".format(self.name, value, self.__min, self.__max))
         except ValueError:
-            print(f"Attempted to set {self.name} to \"{value}\", which is not a valid integer...")
+            print("Attempted to set {} to \"{}\", which is not a valid integer...".format(self.name, value))
 
     def to_dict(self):
         return {"name": self.name, "value": self.value, "type": self.var_type, "min": self.__min, "max": self.__max}
@@ -240,9 +240,9 @@ class FloatVariable(Variable):
             if (self.__min <= value <= self.__max):
                 super(ColorVariable, type(self)).value.fset(self, value)
             else:
-                print(f"Attempted to set {self.name} to {value} but range is [{self.__min},{self.__max}].")
+                print("Attempted to set {} to {} but range is [{},{}].".format(self.name, value, self.__min, self.__max))
         except ValueError:
-            print(f"Attempted to set {self.name} to \"{value}\", which is not a valid float...")
+            print("Attempted to set {} to \"{}\", which is not a valid float...".format(self.name, self.value))
     
     def __str__(self):
         return round(self.value, 2)
@@ -262,4 +262,4 @@ class BooleanVariable(Variable):
         try:
             value = bool(value)
         except:
-            print(f"Attempted to set {self.name} to \"{value}\", which is not a valid bool...")
+            print("Attempted to set {} to \"{}\", which is not a valid bool...".format(self.name, value))

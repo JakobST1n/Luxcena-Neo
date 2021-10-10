@@ -23,13 +23,13 @@ def init_strip(strip_config_file):
     strip_config_obj = configparser.ConfigParser()
     strip_config_obj.read(args.strip_config)
     strip_config = dict(strip_config_obj.items("DEFAULT"))
-    strip_config["matrix"] = json.loads(strip_config["matrix"].replace('"', ""))
-    strip_config["segments"] = [int(x) for x in strip_config["segments"].split(" ")]
-    strip_config["led_channel"] = int(strip_config["led_channel"])
-    strip_config["led_dma"] = int(strip_config["led_dma"])
-    strip_config["led_freq_hz"] = int(strip_config["led_freq_hz"])
-    strip_config["led_invert"] = (strip_config["led_invert"] == "false")
-    strip_config["led_pin"] = int(strip_config["led_pin"])
+    strip_config["matrix"] = json.loads(strip_config_obj.get("DEFAULT", "matrix").replace('"', ""))
+    strip_config["segments"] = [int(x) for x in strip_config_obj.get("DEFAULT", "segments").split(" ")]
+    strip_config["led_channel"] = strip_config_obj.getint("DEFAULT", "led_channel")
+    strip_config["led_dma"] = strip_config_obj.getint("DEFAULT", "led_dma")
+    strip_config["led_freq_hz"] = strip_config_obj.getint("DEFAULT", "led_freq_hz")
+    strip_config["led_invert"] = strip_config_obj.getboolean("DEFAULT", "led_invert")
+    strip_config["led_pin"] = strip_config_obj.getint("DEFAULT", "led_pin")
     strip = Strip(strip_config)
     return strip
 
@@ -38,10 +38,11 @@ def init_package(package_path, entry_module, strip):
     print ("> Initializing package (mode)...")
     sys.path.append(package_path)
     module = importlib.import_module(entry_module)
-    module_entry_instance = module.Main(package_path)
 
     # Make the strip instance available in our modules
     setattr(module, "strip", strip)
+
+    module_entry_instance = module.Main(package_path)
 
     return module_entry_instance
 
@@ -164,14 +165,14 @@ class NeoRuntime:
             elif command[1] == 1:
                 self.__strip.brightness = command[2]
             else:
-                print(f"Unknown globvar {command[1]}.")
+                print("Unknown globvar {}.".format(command[1]))
         elif command[0] == 1:
             name  = command[3:3+command[1]].decode("ascii")
             value = command[3+command[1]:3+command[1]+command[2]].decode("ascii")
             if name in self.__module_entry_instance.var:
                 self.__module_entry_instance.var[name] = value
             else:
-                print(f"Unknown variable {name}")
+                print("Unknown variable ".format(name))
         elif command[0] == 2:
             self.__send_strip_buffer = (command[1] == 1)
         else:
@@ -245,19 +246,19 @@ if __name__ == "__main__":
     args.mode_entry = args.mode_entry.replace("\"", "")
     args.socket_file = args.socket_file.replace("\"", "")
     if not path.exists(args.strip_config):
-        print(f"Strip config not found ({args.strip_config}).")
+        print("Strip config not found ({})".format(args.strip_config))
         sys.exit(1)
     if not path.exists(args.mode_path):
-        print(f"Mode path not found ({args.mode_path}).")
+        print("Mode path not found ({})".format(args.mode_path))
         sys.exit(1)
-    if not path.exists(f"{args.mode_path}/{args.mode_entry}.py"):
-        print(f"Mode entry not found in mode path ({args.mode_path}/{args.mode_entry}).")
+    if not path.exists("{}/{}.py".format(args.mode_path, args.mode_entry)):
+        print("Mode entry not found in mode path ({}/{})".format(args.mode_path, args.mode_entry))
         sys.exit(1)
 
-    print(f"StripConfig: {args.strip_config}")
-    print(f"Module     : {args.mode_path}/{args.mode_entry}")
+    print("StripConfig: ".format(args.strip_config))
+    print("Module     : ".format(args.mode_path, args.mode_entry))
 
-    print(f"> Starting \"{args.mode_path}\" in NeoRuntime.")
+    print("> Starting \"{}\" in NeoRuntime.".format(args.mode_path))
     runtime = NeoRuntime(args.mode_path, args.mode_entry, args.strip_config, args.socket_file)
     runtime.start()
     print ("> NeoRuntime exited...")

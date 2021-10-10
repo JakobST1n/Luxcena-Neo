@@ -31,10 +31,9 @@ def twentyfour_bit_from_rgb(red, green, blue, white=0):
 
 def twentyfour_bit_from_hex(hex_color: str):
     """ Convert the provided hex code to a 24-bit color value. """
+    print(hex_color)
     value = hex_color.lstrip('#')
-    lv = len(value)
-    rgb = tuple(int(value[i:i+lv//3], 16) for i in range(0, lv, lv//3))
-    return twentyfour_bit_from_rgb(red=rgb[1], green=rgb[0], blue=rgb[2])
+    return (int(value[0:2], 16) << 16) | (int(value[2:4], 16) << 8) | (int(value[4:6], 16))
 
 
 def detect_format_convert_color(*color) -> int:

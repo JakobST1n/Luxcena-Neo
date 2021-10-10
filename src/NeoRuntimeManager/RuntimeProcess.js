@@ -28,6 +28,7 @@ class RuntimeProcess {
         this.isRunning = true;
         this.proc = spawn.spawn(
             `${__appdir}/NeoRuntime/Runtime/venv/bin/python`,
+            //"python",
             [
                 "-u", // This makes us able to get real-time output
                 `${__appdir}/NeoRuntime/Runtime/neo_runtime.py`,
