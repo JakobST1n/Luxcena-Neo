@@ -1,6 +1,10 @@
 import json
 from os import path
+<<<<<<< Updated upstream
 import rpi_ws281x as ws
+=======
+# from .neopixel import *
+>>>>>>> Stashed changes
 from .matrix import Matrix, get_segment_range
 from .power_calc import calcCurrent
 
@@ -20,7 +24,7 @@ class Strip:
         if ("color_calibration" in strip_conf) and (strip_conf["color_calibration"] != ""):
             self.COLOR_CALIBRATION = strip_conf["led_calibration"]
         else:
-            self.COLOR_CALIBRATION = [(1,1,1) for x in range(self.LED_COUNT)]
+            self.COLOR_CALIBRATION = [0xffffffff for x in range(self.LED_COUNT)]
 
         self.TMPCOLORSTATE = [0 for x in range(self.LED_COUNT)]
         self.COLORSTATE = [0 for x in range(self.LED_COUNT)]
@@ -70,14 +74,14 @@ class Strip:
             except:
                 print("Could not load saved globvars...")
 
-    
+
     def save_globvars(self):
         with open(self.__globvars_path, "w") as f:
             f.write(json.dumps({
                 "power_on": self.__power_on,
                 "brightness": self.__brightness
             }))
-    
+
     @property
     def power_on(self):
         return self.__power_on
@@ -115,7 +119,7 @@ class Strip:
     def show(self):
         """Update the display with the data from the LED buffer."""
         self.COLORSTATE = self.TMPCOLORSTATE
-        self.strip.show()
+        # self.strip.show()
 
     def set_pixel_color(self, n, *color):
         """Set LED at position n to the provided 24-bit color value (in RGB order).
@@ -152,7 +156,7 @@ class Strip:
 
 
 def color_from_rgb(red, green, blue, white=0):
-    """ 
+    """
     Convert the provided red, green, blue color to a 24-bit color value.
     Each color component should be a value 0-255
     where 0 is the lowest intensity and 255 is the highest intensity.

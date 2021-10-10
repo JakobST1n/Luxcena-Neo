@@ -78,16 +78,24 @@ function getNetworkAddress() {
     }
     return results[Object.keys(results)[0]][0]
 }
+let http = require("http");
 function tryBroadcastSelf() {
     if (neoModules.userData.config.DiscoveryServer.broadcastSelf) {
+        let address = neoModules.userData.config.DiscoveryServer.address;
+        let port = 443;
+        if (address.includes(":")) {
+            address = address.split(":");
+            port = parseInt(address[1]);
+            address = address[0];
+        }
         const data = JSON.stringify({
                 address: `https://${getNetworkAddress()}:${neoModules.userData.config.HTTP.port}`,
                 name: neoModules.userData.config.instanceName,
                 widgetaddr: "/#/widget"
             })
         const options = {
-            hostname: `${neoModules.userData.config.DiscoveryServer.address}`,
-            port: 443,
+            hostname: address,
+            port: port,
             path: "/HEY",
             method: "POST",
             headers: {
@@ -95,12 +103,11 @@ function tryBroadcastSelf() {
                 "Content-length": data.length
             }
         };
-        let req = https.request(options, res => {
+        let req = http.request(options, res => {
             if (res.statusCode != 200) {
                 res.on("data", (d) => logger.warning(d.toString()));
             } else {
-                res.on("data", (d) => logger.info(d.toString()));
-                logger.info("Broadcasted self")
+                // res.on("data", (d) => logger.info(d.toString()));
             }
         });
         req.on("error", (error) => logger.warning(error.toString()))
@@ -108,7 +115,7 @@ function tryBroadcastSelf() {
         req.end();
     }
 }
-// setInterval(tryBroadcastSelf, 30000);
-// tryBroadcastSelf();
+setInterval(tryBroadcastSelf, 30000);
+tryBroadcastSelf();
 
 // setInterval(() => { logger.notice("I feel FANTASTIC, an I'm still alive. Uptime: " + process.uptime()); }, 600000);
