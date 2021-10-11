@@ -22,6 +22,8 @@
             scrollBox.scrollTop = scrollBox.scrollHeight + 100;
         }
     }
+    
+    authorizedSocket.on("editor:proc:start", () => htmlCode = "");
     authorizedSocket.on("editor:proc:exit", (code) => addData(`\nMode exited with ${code}\n\n`, "exit"));
     authorizedSocket.on("editor:proc:stdout", (stdout) => addData(stdout, "stdout"));
     authorizedSocket.on("editor:proc:stderr", (stderr) => addData(stderr, "stderr"));
