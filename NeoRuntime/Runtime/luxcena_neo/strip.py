@@ -8,36 +8,44 @@ from .power_calc import calcCurrent
 class Strip:
 
     def __init__(self, strip_conf):
+        # Read in all config options
         self.SEGMENTS = strip_conf["segments"]
-
         self.LED_FREQ_HZ = int(strip_conf["led_freq_hz"])  # LED signal frequency in hertz (usually 800khz)
         self.LED_CHANNEL = int(strip_conf["led_channel"])  # Set to '1' for GPIOs 13, 19, 41, 45, 53
-        self.LED_INVERT  = strip_conf["led_invert"]   # True to invert the signal, (when using NPN transistor level shift)
+        self.LED_INVERT  = strip_conf["led_invert"]        # True to invert the signal, (when using NPN transistor level shift)
         self.LED_PIN     = int(strip_conf["led_pin"])      # 18 uses PWM, 10 uses SPI /dev/spidev0.0
         self.LED_DMA     = int(strip_conf["led_dma"])      # DMA channel for generating the signal, on the newer ones, try 10
-        self.LED_COUNT   = sum(self.SEGMENTS)        # Number of LEDs in strip
-
+        self.LED_COUNT   = sum(self.SEGMENTS)              # Number of LEDs in strip
+        
+        # Setup the color calibration array
         if ("color_calibration" in strip_conf) and (strip_conf["color_calibration"] != ""):
             self.COLOR_CALIBRATION = strip_conf["led_calibration"]
         else:
             self.COLOR_CALIBRATION = [0xffffffff for x in range(self.LED_COUNT)]
 
+        # Setup some buffers we can use to keep track of what will be displayed
+        # and what is displayed (could use rpi_ws281x functions for this maybe)
         self.TMPCOLORSTATE = [0 for x in range(self.LED_COUNT)]
         self.COLORSTATE = [0 for x in range(self.LED_COUNT)]
 
-        self.LED_BRIGHTNESS = 255
+        # Keeping the state of the strip power
+        self.__power_on = True
+        # Keeping what the brightness is set to
+        self.__set_brightness = 255
+        # Keeping what the brightness actually is
+        self.__actual_brightness = self.__set_brightness
         
+        # Setup the strip instance
         self.strip = ws.Adafruit_NeoPixel(
             self.LED_COUNT,
             self.LED_PIN,
             self.LED_FREQ_HZ,
             self.LED_DMA,
             self.LED_INVERT,
-            self.LED_BRIGHTNESS,
+            self.__set_brightness,
             self.LED_CHANNEL,
             strip_type=ws.WS2812_STRIP
         )
-
         self.strip.begin()
 
         # Blank out all the LEDs
@@ -55,11 +63,8 @@ class Strip:
         self.pixelMatrix.dump()
         # except:
         #    print("Something went wrong while setting up your self-defined matrix.")
-
-        self.__power_on = True
-        self.__brightness = 255
-        self.__actual_brightness = self.__brightness
-
+        
+        # Read in state file, so we can revoces the last state.
         self.__globvars_path = path.join(path.split(path.dirname(path.abspath(__file__)))[0], "state.json")
         if path.exists(self.__globvars_path):
             try:
@@ -70,12 +75,11 @@ class Strip:
             except:
                 print("Could not load saved globvars...")
 
-
     def save_globvars(self):
         with open(self.__globvars_path, "w") as f:
             f.write(json.dumps({
                 "power_on": self.__power_on,
-                "brightness": self.__brightness
+                "brightness": self.__set_brightness
             }))
 
     @property
@@ -85,37 +89,32 @@ class Strip:
     @power_on.setter
     def power_on(self, value: bool):
         self.__power_on = value
-        if (self.power_on):
-            self.__actual_brightness = self.__brightness
-            self.strip.setBrightness(self.__brightness)
-            self.strip.show()
-        else:
-            self.__actual_brightness = 0
-            self.strip.setBrightness(0)
-            self.strip.show()
+        self._set_brightness(self.__set_brightness if self.power_on else 0)
         self.save_globvars()
 
     @property
     def brightness(self):
-        #return self.strip.getBrightness()
         return self.__actual_brightness
 
     @brightness.setter
     def brightness(self, value: int):
         if 0 <= value <= 255:
-            self.__brightness = value
+            self.__set_brightness = value
             if (self.power_on):
-                self.__actual_brightness = value
-                self.strip.setBrightness(value)
-                self.strip.show()
+                self._set_brightness(value)
             self.save_globvars()
         else:
             raise Exception("Value ({}) outside allowed range (0-255)".format(value))
+    
+    def _set_brightness(self, value):
+        self.__actual_brightness = value
+        self.strip.setBrightness(value)
+        self.show()
 
     def show(self):
         """Update the display with the data from the LED buffer."""
         self.COLORSTATE = self.TMPCOLORSTATE
-        # self.strip.show()
+        self.strip.show()
 
     def set_pixel_color(self, n, *color):
         """Set LED at position n to the provided 24-bit color value (in RGB order).
