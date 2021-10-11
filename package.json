@@ -1,6 +1,6 @@
 {
     "name": "luxcena-neo",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "Some description.",
     "scripts": {
         "start": "node app.js",
