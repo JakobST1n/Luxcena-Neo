@@ -20,7 +20,9 @@ openSocket.io.on("reconnect", () => {
     openSocketReconnecting.set(false);
 });
 
-export const authorizedSocket = io("/authed", {auth: {token: "te"}});
+let storedSessionToken = localStorage.getItem("sessionToken");
+
+export const authorizedSocket = io("/authed", {auth: {token: (storedSessionToken == null) ? "" : storedSessionToken}});
 export let authorizedSocketConnected = writable(false);
 export let authorizedSocketReconnecting = writable(false);
 export let authorizedSocketConnectError = writable(false);
@@ -67,8 +69,6 @@ authorizedSocket.on("user", (userObj) => {
     user.set(userObj);
 });
 
-
-let storedSessionToken = localStorage.getItem("sessionToken");
 export const isAuthenticating = writable(storedSessionToken != undefined);
 export const sessionToken = writable(storedSessionToken);
 function connectAuthorizedSocket() {
