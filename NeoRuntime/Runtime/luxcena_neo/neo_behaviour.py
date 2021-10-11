@@ -216,7 +216,7 @@ class IntegerVariable(Variable):
         try:
             value = int(value)
             if (self.__min <= value <= self.__max):
-                super(ColorVariable, type(self)).value.fset(self, value)
+                super(IntegerVariable, type(self)).value.fset(self, value)
             else:
                 print("Attempted to set {} to {} but range is [{},{}].".format(self.name, value, self.__min, self.__max))
         except ValueError:
@@ -238,7 +238,7 @@ class FloatVariable(Variable):
         try:
             value = float(value)
             if (self.__min <= value <= self.__max):
-                super(ColorVariable, type(self)).value.fset(self, value)
+                super(FloatVariable, type(self)).value.fset(self, value)
             else:
                 print("Attempted to set {} to {} but range is [{},{}].".format(self.name, value, self.__min, self.__max))
         except ValueError:
@@ -261,5 +261,6 @@ class BooleanVariable(Variable):
     def value(self, value):
         try:
             value = bool(value)
+            super(BooleanVariable, type(self)).value.fset(self, value)
         except:
             print("Attempted to set {} to \"{}\", which is not a valid bool...".format(self.name, value))
