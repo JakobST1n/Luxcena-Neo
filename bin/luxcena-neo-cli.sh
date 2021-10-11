@@ -73,7 +73,8 @@ if [ "$action" == "update" ]; then
   #cd "$WDIR"
 
   # Fetch newest changes on branch
-  runuser -l 'lux-neo' -c "git -C $WDIR pull" || die
+  #runuser -l 'lux-neo' -c "git -C $WDIR pull" || die
+  git -C $WDIR pull
 
   # Add node repo
   curl -fsSL https://deb.nodesource.com/setup_14.x | bash - || die
@@ -85,9 +86,12 @@ if [ "$action" == "update" ]; then
   pip3 install virtualenv || die
 
   # Create and configure python virtualenv
-  runuser -l 'lux-neo' -s /bin/bash -c "rm -rf $WDIR/NeoRuntime/Runtime/venv" || die
-  runuser -l 'lux-neo' -s /bin/bash -c "virtualenv -p /usr/bin/python3 $WDIR/NeoRuntime/Runtime/venv" || die
-  runuser -l 'lux-neo' -s /bin/bash -c "source $WDIR/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x" || die
+  # runuser -l 'lux-neo' -s /bin/bash -c "rm -rf $WDIR/NeoRuntime/Runtime/venv" || die
+  rm -rf $WDIR/NeoRuntime/Runtime/venv || die
+  #runuser -l 'lux-neo' -s /bin/bash -c "virtualenv -p /usr/bin/python3 $WDIR/NeoRuntime/Runtime/venv" || die
+  virtualenv -p /usr/bin/python3 $WDIR/NeoRuntime/Runtime/venv || die
+  #runuser -l 'lux-neo' -s /bin/bash -c "source $WDIR/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x" || die
+  source $WDIR/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x || die
 
   # Build and run all npm scripts
   if [ "$2" != "skipNode" ]; then
