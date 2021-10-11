@@ -1,264 +1,121 @@
 let fse = require("fs-extra");
-let express = require("express");
-let http = require("http");
-let app = express();
-let server = http.createServer(app);
-let io = require("socket.io").listen(server);
+let events = require('events');
 
 // Firstly we set up all globals, check that the usrData dir exists, if not, we run the setup
-let srcDir = __dirname;
-let installDir = "/home/lux-neo/"
-if (process.argv.length >= 3) { installDir = process.argv[2]; }
-let dataDir = installDir + "/userdata/";
-if (!fse.existsSync(dataDir)) { throw new Error("APPDIR not found! Exiting..."); }
+global.__appdir    = "/opt/luxcena-neo";
+global.__configdir = "/etc/luxcena-neo";
+global.__datadir   = "/var/luxcena-neo";
+global.__logdir    = "/var/log/luxcena-neo";
 
-// Secondly we setup the logger, and the global access to "runtimeData"; a jSON-file containing some runtimeData
-global.runtimeData = new (require("./src/runtimeData"))(dataDir);  // This is a global registry that everyone can access data from, it is saved as JSON to file
-global.log = (logString, logLevel) => {
-    let broadcastEntry = (rawEntry) => { io.sockets.emit("newLogEntry", rawEntry); };
-
-    fse.ensureFileSync(installDir + "/logs/logger.log");
-
-    let CDate = new Date();
-    let timeStr = CDate.getDay() + "." +
-        CDate.getMonth() + "." +
-        CDate.getFullYear() + " " +
-        CDate.getHours().toString() + ":" +
-        CDate.getMinutes().toString() + ":" +
-        CDate.getSeconds().toString() + ":" +
-        CDate.getMilliseconds().toString();
-
-    try {
-        let logFileText = `\n[${timeStr}] ${logLevel.toUpperCase()} ${logString}`;
-        fse.appendFile(installDir + "/logs/logger.log", logFileText, (err) => {
-           if (err) throw err;
-        });
-    } catch (e) {
-        let logFileText = `\n[${timeStr}] ERROR ${logString}; Additionally, something went wrong with the logger.`;
-        fse.appendFile(installDir + "/logs/logger.log", logFileText, (err) => {
-            if (err) throw err;
-        });
-    }
-    broadcastEntry({
-       time: timeStr,
-       type: logLevel.toUpperCase(),
-       details: logString
-    });
-};
-
-global.log("Starting Luxcena-Neo...", "event");
-
-// Generate all user-folders
-fse.ensureDirSync(dataDir + "/");
-fse.ensureDirSync(dataDir + "/config/");
-fse.ensureDirSync(dataDir + "/usrCode/");
-fse.ensureDirSync(dataDir + "/remoteCode/");
-// Generate config-files
-if (!fse.existsSync(dataDir + "/config/versionChecker.json")) {
-    fse.writeFileSync(dataDir + "/config/versionChecker.json", JSON.stringify({
-      "branch": "dev",
-      "checkInterval": 5
-    }, null, 4));
+if ((process.argv.length >= 3) && (process.argv[2] == "dev")) {
+    global.__appdir    = __dirname;
+    global.__configdir = __dirname + "/tmp/config";
+    global.__datadir   = __dirname + "/tmp/userdata";
+    global.__logdir    = __dirname + "/tmp/logs";
 }
-if (!fse.existsSync(dataDir + "/config/strip.json")) {
-    fse.writeFileSync(dataDir + "/config/strip.json", JSON.stringify({
-        "segments": [],
-        "matrix": [],
-        "segmentConfiguration": "snake",
-        "led_pin": 18,
-        "led_freq_hz": 800000,
-        "led_dma": 10,
-        "led_invert": false,
-        "led_channel": 0
-    }, null, 4));
+if (!fse.existsSync(global.__appdir)) {
+    console.log(`CRITICAL UserDir not found '${userDir}'! Exiting...`);
+    process.exit(1);
 }
 
+// global eventEmitter
+global.__event = new events.EventEmitter();
+
+// Secondly we setup the logger,
+let logger = require("./src/Logger");
+logger.info("Starting Luxcena-Neo...");
+
+let neoModules = {};
+neoModules.userData = require("./src/UserData")(neoModules);
+neoModules.SSLCert = require("./src/SSLCert")(neoModules);
+neoModules.selfUpdater = require("./src/SelfUpdater")(neoModules);
+neoModules.neoRuntimeManager = require("./src/NeoRuntimeManager")(neoModules);
+
+neoModules.neoRuntimeManager.mode.set(neoModules.userData.config.activeMode);
 
 // All the domain-things are now setup, we are ready to run our main program...
-let versionChecker = require("./src/versionChecker")(dataDir + "/config/versionChecker.json", srcDir + "/package.json");
-let neoRuntime = require("./src/neoRuntime")(dataDir);
+let express = require("express");
+let https = require("https");
+let app = express();
+let server = https.createServer({
+        key: fse.readFileSync(__configdir + "/certs/privkey.pem"),
+        cert: fse.readFileSync(__configdir + "/certs/cert.pem")
+    },
+    app
+);
+let io = require("socket.io")(server);
+require("./src/SocketIO")(neoModules, io);
+app.use("/", express.static(__appdir + "/public"));
 
-// Setup static assets
-app.use(express.static("public/assets"));
-// Serve docs
-app.use("/docs", express.static("docs/_book/"));
-// Gave up using webpack to compile monaco, therefore, loading the already-compiled code. Probably the slowest way possible, but so it goes.
-app.use("/monaco-editor", express.static("node_modules/monaco-editor/"));
-// Setup all our custom middleware
-app.use(require("./src/domain/middleware") ({
-    srcDir: __dirname
-}));
-
-// SocketIo
-io.on("connection", (client) => {
-
-    client.on("UpdaterStatus", () => {
-        client.emit("updaterStatus", global.runtimeData.get("udpaterMessage"));
-    });
-
-    client.on("GetScripts", () => {
-        client.emit("updatedScriptList", neoRuntime.listScripts());
-        client.emit("callback", {
-            success: true,
-            error: {},
-            request: "GetScripts",
-            scriptList: neoRuntime.listScripts()
-        });
-    });
-
-    client.on("SelectScript", (arguments) => {
-        neoRuntime.selectScript(arguments["scriptPath"]);
-        client.emit("callback", {
-            success: true,
-            error: {},
-            request: "SelectScript"
-        });
-    });
-
-    client.on("DeleteScript", (arguments) => {
-        neoRuntime.deleteScript(arguments["scriptPath"]);
-        client.emit("callback", {
-            success: true,
-            error: {},
-            request: "DeleteScript"
-        });
-    });
-
-    client.on("CreateEmptyScript", (arguments) => {
-        neoRuntime.createEmptyScript(arguments["scriptName"]);
-        client.emit("callback", {
-            success: true,
-            error: {},
-            request: "CreateEmptyScript"
-        });
-    });
-
-    client.on("NeoIde_GetScript", (arguments) => {
-        let script = neoRuntime.getScript(arguments["scriptPath"]);
-        if (!script) {
-            client.emit("callback", {
-                success: false,
-                error: {},
-                request: "NeoIde_GetScript"
-            });
-        } else {
-            client.emit("callback", {
-                success: true,
-                error: {},
-                request: "NeoIde_GetScript",
-                data: {
-                    script: script
-                }
-            });
-        }
-    });
-
-    client.on("NeoIde_RunScript", (arguments) => {
-        neoRuntime.selectScript(arguments["scriptPath"]);
-    });
-
-    client.on("NeoIde_StopScript", (arguments) => {
-        let res = neoRuntime.stopScript();
-        if (!res.success) {
-            client.emit("callback", {
-                success: false,
-                error: res.error,
-                request: "NeoIde_StopScript"
-            })
-        } else {
-            client.emit("callback", {
-                success: true,
-                error: {},
-                request: "NeoIde_StopScript"
-            });
-        }
-    });
-
-    client.on("NeoIde_GetScriptOutput", (arguments) => {
-        let res = neoRuntime.getScriptOutput(arguments["scriptPath"]);
-        if (res.success) {
-            client.emit("callback", {
-                success: true,
-                request: "NeoIde_GetScriptOutput",
-                output: res.output
-            })
-        } else {
-            client.emit("callback", {
-                success: false,
-                request: "NeoIde_GetScriptOutput",
-                error: res.error
-            })
-        }
-    });
-
-    client.on("NeoIde_SaveScript", (arguments) => {
-        neoRuntime.saveScript(arguments.script, (res) => {
-            if (res.success) {
-                client.emit("callback", {
-                    success : true,
-                    error: {},
-                    request: "NeoIde_SaveScript"
-                });
-            } else {
-                client.emit("callback", {
-                    success : false,
-                    error: res.error,
-                    request: "NeoIde_SaveScript"
-                });
-            }
-        });
-    });
-
-    client.on("GetLog", (arguments) => {
-        let filter = null;
-        let reqEntryN = 10;
-        if (arguments.filter !== undefined) { filter = arguments.filter.split(' ').map(x => x.toUpperCase()); }
-        if (arguments.entryN !== undefined) { reqEntryN = arguments.entryN; }
-
-
-        fse.readFile(installDir + "/logs/logger.log", 'utf8', function (err, rawLog) {
-            if (err) { return global.log(err, "error"); }
-
-            let logEntries = rawLog.split('\n').filter(n => n);
-            let collectedEntryN = 0;
-            let collectedEntries = [];
-            for (let i = logEntries.length - 1; i >= 0; i--) {
-                let entry = logEntries[i];
-                if (entry === "") { continue; }
-
-                let index1 = entry.indexOf("]");
-                let time = entry.substring(1, index1 - 1);
-                let index2 = entry.indexOf(" ", index1 + 2);
-                let type = entry.substring(index1 + 2, index2);
-                let details = entry.substring(index2);
-
-                if ( (filter == null) || filter.includes(type) ) {
-                    collectedEntries.push({
-                        time : time,
-                        type : type.toUpperCase(),
-                        details : details
-                    });
-
-                    if ((collectedEntryN++) >= reqEntryN-1) { break; }
-                }
-
-            }
-
-            client.emit("lastLogEntries", collectedEntries);
-        });
-
-    });
-
-    client.on("GetGeneralInfo", () => {
-        client.emit("generalInfo", neoRuntime.status());
-    })
-
-});
-
-server.listen(8080,  () => {
+server.listen(neoModules.userData.config.HTTP.port,  () => {
     let host = server.address().address;
     let port = server.address().port;
-    global.log(`Webserver now listening at *:${port}`, "success");
+    logger.info(`Webserver now listening at *:${port}`);
 });
 
-//setInterval(() => { global.log("I feel FANTASTIC, an I'm still alive. Uptime: " + neoRuntime.uptime(), "debug"); }, 5000);
+/**
+ * Get a local network address
+ * 
+ * @return {string} ip address
+ */
+function getNetworkAddress() {
+    const { networkInterfaces } = require('os');
+    const nets = networkInterfaces();
+    const results = Object.create(null); // Or just '{}', an empty object
+    for (const name of Object.keys(nets)) {
+        for (const net of nets[name]) {
+            // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
+            if (net.family === 'IPv4' && !net.internal) {
+                if (!results[name]) {
+                    results[name] = [];
+                }
+                results[name].push(net.address);
+            }
+        }
+    }
+    if (Object.keys(results).length > 1) {
+        logger.info("Multiple network addresses found!!!")
+    }
+    return results[Object.keys(results)[0]][0]
+}
+let http = require("http");
+function tryBroadcastSelf() {
+    if (neoModules.userData.config.DiscoveryServer.broadcastSelf) {
+        let address = neoModules.userData.config.DiscoveryServer.address;
+        let port = 443;
+        if (address.includes(":")) {
+            address = address.split(":");
+            port = parseInt(address[1]);
+            address = address[0];
+        }
+        const data = JSON.stringify({
+                address: `https://${getNetworkAddress()}:${neoModules.userData.config.HTTP.port}`,
+                name: neoModules.userData.config.instanceName,
+                widgetaddr: "/#/widget"
+            })
+        const options = {
+            hostname: address,
+            port: port,
+            path: "/HEY",
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Content-length": data.length
+            }
+        };
+        let req = http.request(options, res => {
+            if (res.statusCode != 200) {
+                res.on("data", (d) => logger.warning(d.toString()));
+            } else {
+                // res.on("data", (d) => logger.info(d.toString()));
+            }
+        });
+        req.on("error", (error) => logger.warning(error.toString()))
+        req.write(data);
+        req.end();
+    }
+}
+setInterval(tryBroadcastSelf, 30000);
+tryBroadcastSelf();
+
+// setInterval(() => { logger.notice("I feel FANTASTIC, an I'm still alive. Uptime: " + process.uptime()); }, 600000);

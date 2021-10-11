@@ -2,13 +2,13 @@
 Description=Luxcena Neo
 
 [Service]
-ExecStart=/home/lux-neo/src/bin/luxcena-neo.sh
+ExecStart=/opt/luxcena-neo/bin/luxcena-neo.sh
 Restart=always
 RestartSec=10
 
 Environment=PATH=/usr/bin:/usr/local/bin
-Environment=NODE_ENV=production
-WorkingDirectory=/home/lux-neo/src/
+Environment=NODE_ENV=development
+WorkingDirectory=/opt/luxcena-neo/
 
 [Install]
 WantedBy=multi-user.target

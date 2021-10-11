@@ -22,9 +22,9 @@ When running the command above, a config file should appear in the editor 'nano'
     "led_channel": 0
 }
 ```
-{% hint style='tip' %}
-If you rather want to use vim or another editor, the file is at `/home/lux-neo/userdata/config/strip.json`
-{% endhint %}
+
+??? tip "Tip - Change editor"
+    If you rather want to use vim or another editor, the file is at `/home/lux-neo/userdata/config/strip.json`
 
 ## led_count
 
@@ -49,15 +49,15 @@ This is a two dimensonal array, used to arrange the segments in a matrix of your
 ]
 ```
 Each entry looks is a list, with two parameters, `[<segment_number>, <invert>]`
-{% hint style='danger' %}
-If you don't have a reference to all the segments or something, the matrix setup will fail. And fall back to 'segmentsconfiguration'
-{% endhint %}
+!!! danger "Warning"
+    If you don't have a reference to all the segments or something, the matrix setup will fail. And fall back to 'segmentsconfiguration'
+
 
 ## segmentconfiguration
 
 If the matrix-option is empty or badly setup. The matrix will be set up using one of these defaults:
 
-```
+```json
 "snake":
 "line":
 "random":
@@ -67,9 +67,9 @@ If the matrix-option is empty or badly setup. The matrix will be set up using on
 If using the luxcena-shield, you shouldn't have to worry about this option. But set it to the GPIO-port connected to your pixel's din-port.
 
 ## led_dma
-{% hint style='danger' %}
-If using a newer RPi (3 or newer), leave this as 10! Or your file-system might crash.
-{% endhint %}
+!!! danger "Warning"
+    If using a newer RPi (3 or newer), leave this as 10! Or your file-system might crash.
+
 This is the dma-channel used to generate the data-stream. If you for some reason need channel 10 for something else, you can change it. But i strongly recommend leaving it to 10!
 
 ## led_invert

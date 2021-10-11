@@ -12,5 +12,4 @@ To install, follow the guide here: [Install Luxcena-Neo](https://github.com/Jako
 The link there won't work on github, only when starting the software. So here is the link to the configuration-guide:
 [Configuring Luxcena-Neo](https://github.com/JakobST1n/Luxcena-Neo/blob/master/docs/Usage/Configuration.md)
 
-## Issues
-*There might still be a bit hard for someone not having spent hours looking at the source to use this software. But i assure you that it will be really easy to use shortly*
+*SHOULD ADD RELATIVE PATH PROTECTION ON ALL PLACES USERS CAN ENTER PATHS.*

@@ -5,9 +5,6 @@ printf '%s\n' "Luxcena-neo Installer"
 tput sgr0
 printf '\e[93m%s\e[0m\n\n' "---------------------"
 
-LOG="/tmp/luxcena-neo.install.log"
-echo "Starting Luxcena-neo installer..." > $LOG
-
 if [ "$EUID" -ne 0 ]; then
     echo "You need to run this script as root."
     echo "Try running with 'sudo ./bin/install.sh'"
@@ -16,139 +13,56 @@ fi
 
 function die() {
     tput setaf 1
-    printf "\n\nInstall failed.\n"
-    printf "Check the logfile at '/tmp/lucxena-neo.install.log'.\n"
-    printf "Use this command to see the last 30 lines of the file;\n"
-    printf "    tail -n 30 /tmp/luxcena-neo.install.log"
+    printf "\n\nInstall failed, successfull steps not reversed.\n"
     tput sgr0
     exit 1
 }
 
-function dlgYN() {
-    tput sc
-    tput setaf 4
-    printf "$1 (y/n)? "
-    while :
-    do
-        read -n 1 -p "" YNQuestionAnswer
-        if [[ $YNQuestionAnswer == "y" ]]; then
-            tput rc; tput el
-            printf ". $1?: \e[0;32mYes\e[0m\n"
-            tput sc
-            eval $2=1 # Set parameter 2 of input to the return value
-            break
-        elif [[ $YNQuestionAnswer == "n" ]]; then
-            tput rc; tput el
-            printf ". $1?: \e[0;31mNo\e[0m\n"
-            eval $2=0 # Set parameter 2 of input to the return value
-            break
-        fi
-    done
-}
-
-# Update system
-dlgYN ". Update your system" res
-if [ $res -eq 1 ]; then
-    tput sc
-    apt-get -y update &>> $LOG || die
-    apt-get -y upgrade &>> $LOG || die
-    tput rc; tput ed
-fi
-
-# Install packages
-dlgYN ". Install required packages" res
-if [ $res -eq 1 ]; then
-    tput sc
-    apt-get -y install nodejs scons python-dev swig &>> $LOG || die
-    if [ $? -eq 0 ]; then
-        tput rc; tput ed
-        printf "✓"
-    else
-        printf "\nInstall failed.\n"
-        exit 1
-    fi
-else
-    tput setaf 2
-    printf "  We are now assuming that all the following packages exists on your system:\n"
-    printf "    nodejs scons python-dev swig\n"
-    tput sgr0
-fi
-
-# Install led-library
-dlgYN ". Install jgarff's rpi_ws281x library" res
-if [ $res -eq 1 ]; then
-    tput sc
-    git clone https://github.com/jgarff/rpi_ws281x /tmp/rpi_ws281x # TODO CHANGE PATH
-    python /tmp/rpi_ws281x/python/setup.py install # TODO CHANGE PAHT
-    if [ $? -eq 0 ]; then
-        tput rc; tput ed
-        printf "✓"
-    else
-        printf "\nInstall failed.\n"
-        exit 1
-    fi
-fi
-
-tput setaf 4
-printf ". Installing the app itself...\n"
-tput sgr0
-
 # Create user 'luxcena-neo'
 tput setaf 8
-printf '%s\n' "  - Creating user 'lux-neo'..."
+printf '%s\n' "- Creating user 'lux-neo'..."
 tput sgr0
 username="lux-neo"
 egrep "^$username" /etc/passwd >/dev/null
 if [ $? -eq 0 ]; then
-	echo "User already exists, continuing..."
+    echo "User already exists, continuing..."
 else
-	#pass=$(perl -e 'print crypt($ARGV[0], "password")' $password)
-	useradd -m $username &>> $LOG || die
+    useradd -m $username || die
 fi
+usermod -a -G gpio $username
+usermod -a -G spi  $username
 
 # First we make our directories
 tput setaf 8
-printf '%s\n' "  - Making app-dir (/bin/luxcena-neo)..."
+printf '%s\n' "- Making directories..."
 tput sgr0
-userDir=$(eval echo "~$username")
-#mkdir -p "$userDir/install" &>> $LOG || die
-#chown $username:$username "$userDir/install" &>> $LOG || die
-mkdir -p "$userDir/src" &>> $LOG || die
-chown $username:$username "$userDir/src" &>> $LOG || die
-mkdir -p "$userDir/userdata" &>> $LOG || die
-chown $username:$username "$userDir/userdata" &>> $LOG || die
+[ -d "/opt/luxcena-neo/" ] && echo "Seems like luxcena-neo is already installed, please do update instead" && die
+mkdir -p "/opt/luxcena-neo" || die
+chown $username:$username "/opt/luxcena-neo" || die
+mkdir -p "/var/luxcena-neo" || die
+chown $username:$username "/var/luxcena-neo" || die
+mkdir -p "/etc/luxcena-neo" || die
+chown $username:$username "/etc/luxcena-neo" || die
+mkdir -p "/var/log/luxcena-neo" || die
+chown $username:$username "/var/log/luxcena-neo" || die
 
-# Third we copy the source into the correct swap-folder
-tput setaf 8
-printf '%s\n' "  - Copying sourceCode to app-dir..."
-tput sgr0
-cp -r . "$userDir/src" &>> $LOG || die
-chown -R $username:$username "$userDir/src" &>> $LOG || die
+printf '%s' "Which branch do you want to install (default: master)? "
+read BRANCH
+if [ -z "$BRANCH" ]; then
+    BRANCH="master"
+fi
 
-# fourth we run npm i
+# Get source code
 tput setaf 8
-printf '%s\n' "  - Running npm i..."
+printf '%s\n' "- Fetch source code..."
 tput sgr0
-tput sc
-export NODE_ENV=production &>> $LOG || die
-runuser -l $username -c 'npm --prefix ~/src install ~/src --only=production' &>> $LOG || die # This is probably a bit overkill to have --only=... but better safe than sorry?
-tput rc; tput ed
+runuser -l $username -c "git clone -b $BRANCH https://github.com/jakobst1n/luxcena-neo /opt/luxcena-neo/" || die
 
-# fourth we copy the cli to our bin folder
+# Install all packages, build the app, and prepare everything
 tput setaf 8
-printf '%s\n' "  - Adding cli-script..."
+printf '%s\n' "- Running installer (updater) from newly fetched source code..."
 tput sgr0
-cp bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh &>> $LOG || die
-ln -sf /usr/bin/luxcena-neo-cli.sh /usr/bin/lux-neo &>> $LOG || die
-tput rc; tput ed
-
-# Fifth we add the service files
-tput setaf 8
-printf '%s\n' "  - Adding service-file to systemd..."
-tput sgr0
-cp bin/luxcena-neo.service /etc/systemd/system/luxcena-neo.service &>> $LOG || die
-systemctl daemon-reload &>> $LOG || die
+/opt/luxcena-neo/bin/luxcena-neo-cli.sh update || die
 
 # Installation is done!
 printf '\n\e[5m%s\e[0m\n' "🎉Luxcena-Neo is now installed🎉"
-printf 'You can now delete this folder'
