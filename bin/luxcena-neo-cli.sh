@@ -5,14 +5,69 @@ usage() {
     exit 1
 }
 
-function die() {
+function startLuxcenaNeo() {
+    header "Start Luxcena NEO"
+    execCommand "systemctl start luxcena-neo" 1
+}
+
+function header() {
+    tput setaf 3
+    printf "\n[ ] $1"
+    tput sgr0
+}
+
+function commandError() {
+    trap - 1
+    cat /tmp/luxcena-neo-update.log
+    
     tput setaf 1
     printf "\n\nInstall failed.\n"
-    printf "Check the logfile at '/tmp/lucxena-neo.install.log'.\n"
-    printf "Use this command to see the last 30 lines of the file;\n"
-    printf "    tail -n 30 /tmp/luxcena-neo.install.log"
     tput sgr0
+
+    startLuxcenaNeo
     exit 1
+}
+
+function execCommand() {
+    tput sc
+    tput setaf 4
+    printf " ($1)"
+    tput sgr0
+    bash -c "$1 > /tmp/luxcena-neo-update.log 2>&1" &
+
+    PID=$!
+
+    i=1
+    sp="/-\|"
+    while ps a | awk '{print $1}' | grep -q "$PID"; do
+        tput cub $(tput cols)
+        tput cuf 1
+        printf "${sp:i++%${#sp}:1}"
+        tput cuf $(tput cols)
+        sleep 0.09
+    done
+    
+    tput cub $(tput cols)
+    tput cuf 1
+
+    wait $PID
+    commandSucc=$?
+    if [ $commandSucc -eq 0 ]; then
+        tput setaf 2
+        printf "✓"
+        tput sgr0
+        tput rc
+        tput el
+    else
+        tput setaf 1
+        printf "x"
+        tput sgr0
+        tput cuf $(tput cols)
+        printf "\n"
+        if [ $# -eq 1 ] || [ $2 -eq "0" ]; then
+            commandError
+        fi
+    fi
 }
 
 function dlgYN() {
@@ -60,61 +115,59 @@ if [ "$action" == "update" ]; then
   printf '\e[93m%s\e[0m\n\n' "-------------------"
 
   if [ "$EUID" -ne 0 ]; then
-      echo "You need to run this script as root."
-      echo "Try running with 'sudo ./bin/install.sh'"
-      exit 1
+    echo "You need to run this script as root."
+    echo "Try running with 'sudo ./bin/install.sh'"
+    exit 1
   fi
 
-  # Stop the service if it is running already
-  systemctl stop luxcena-neo
+  trap commandError 1
 
-  # Go to source code directory
   WDIR="/opt/luxcena-neo"
-  #cd "$WDIR"
 
-  # Fetch newest changes on branch
-  #runuser -l 'lux-neo' -c "git -C $WDIR pull" || die
-  git -C $WDIR pull
+  header "Download update"
+  UPDATEDIR=$(mktemp -d -p /tmp luxcena-neo-update.XXXXX)
+  repoUrl=$(git -C $WDIR remote get-url origin)
+  repoBranch=$(git -C $WDIR rev-parse --abbrev-ref HEAD)
+  execCommand "git clone -b $repoBranch $repoUrl $UPDATEDIR"
 
-  # Add node repo
-  curl -fsSL https://deb.nodesource.com/setup_14.x | bash - || die
+  header "Create backup"
+  execCommand "mkdir -p /opt/luxcena-neo/backup"
+  BACKUPDIR=$(mktemp -d -p /var/luxcena-neo/backup backup.XXXXXX)
+  execCommand "cp -R /opt/luxcena-neo/ $BACKUPDIR"
 
-  # Make sure nodejs and prerequisites is installed
-  apt -qy install nodejs python3-pip || die
+  header "Stop the running luxcena-neo"
+  execCommand "systemctl stop luxcena-neo"
 
-  # Make sure we have python virtualenv installed
-  pip3 install virtualenv || die
+  header "Install update"
+  execCommand "cp -Rf $UPDATEDIR/* $WDIR"
+  execCommand "chown -R lux-neo:lux-neo $WDIR"
 
-  # Create and configure python virtualenv
-  # runuser -l 'lux-neo' -s /bin/bash -c "rm -rf $WDIR/NeoRuntime/Runtime/venv" || die
-  rm -rf $WDIR/NeoRuntime/Runtime/venv || die
-  #runuser -l 'lux-neo' -s /bin/bash -c "virtualenv -p /usr/bin/python3 $WDIR/NeoRuntime/Runtime/venv" || die
-  virtualenv -p /usr/bin/python3 $WDIR/NeoRuntime/Runtime/venv || die
-  #runuser -l 'lux-neo' -s /bin/bash -c "source $WDIR/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x" || die
-  source $WDIR/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x || die
-
-  # Build and run all npm scripts
-  if [ "$2" != "skipNode" ]; then
-      runuser -l 'lux-neo' -c "export NODE_ENV=development; npm --prefix $WDIR install $WDIR" || die
-  fi
-  ##runuser -l 'lux-neo' -c "cd $WDIR && npm run build:frontend" || die
-  ##runuser -l 'lux-neo' -c "cd $WDIR && npm run build:fontawesome" || die
-  ##runuser -l 'lux-neo' -c "cd $WDIR && npm run build:dialog-polyfill" || die
-  runuser -l 'lux-neo' -c "npm --prefix \"$WDIR\" run build:frontend" || die
-  runuser -l 'lux-neo' -c "npm --prefix \"$WDIR\" run build:fontawesome" || die
-  runuser -l 'lux-neo' -c "npm --prefix \"$WDIR\" run build:dialog-polyfill" || die
-
-
-  # Install new cli script
-  cp /opt/luxcena-neo/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh || die
+  header "Install dependencies"
+  execCommand "wget -qO- https://deb.nodesource.com/setup_14.x | bash -"
+  execCommand "apt -qy install nodejs python3-pip "
+  execCommand "pip3 install virtualenv"
+  execCommand "runuser -l 'lux-neo' -c \"export NODE_ENV=development; npm --prefix $WDIR install $WDIR\""
   
-  # Install updated systemd script
-  cp /opt/luxcena-neo/bin/luxcena-neo.service /etc/systemd/system/luxcena-neo.service || die
-  systemctl daemon-reload || die
+  header "Create python virtualenv and install dependencies"
+  execCommand "rm -rf $WDIR/NeoRuntime/Runtime/venv"
+  execCommand "virtualenv -p /usr/bin/python3 $WDIR/NeoRuntime/Runtime/venv"
+  execCommand "source $WDIR/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x"
+
+  header "Build source code"
+  execCommand "runuser -l 'lux-neo' -c \"npm --prefix \"$WDIR\" run build:frontend\""
+  execCommand "runuser -l 'lux-neo' -c \"npm --prefix \"$WDIR\" run build:fontawesome\""
+  execCommand "runuser -l 'lux-neo' -c \"npm --prefix \"$WDIR\" run build:dialog-polyfill\""
+
+  header "Install new CLI script"
+  execCommand "cp /opt/luxcena-neo/bin/luxcena-neo-cli.sh /usr/bin/luxcena-neo-cli.sh"
+  
+  header "Install new systemd service"
+  execCommand "cp /opt/luxcena-neo/bin/luxcena-neo.service /etc/systemd/system/luxcena-neo.service"
+  execCommand "systemctl daemon-reload"
+  execCommand "systemctl enable luxcena-neo"
+  execCommand "systemctl start luxcena-neo"
 
   printf "Update complete.\n"
-  systemctl start luxcena-neo
-  systemctl enable luxcena-neo
   exit 0
 
 elif [ "$action" == "uninstall" ]; then
@@ -127,14 +180,17 @@ elif [ "$action" == "uninstall" ]; then
 
     dlgYN "Are you sure you want to uninstall?" res
     if [ $res -eq 1 ]; then
-        systemctl stop luxcena-neo
-        deluser lux-neo
-        rm -rf /home/lux-neo
-	rm -rf /opt/luxcena-neo
-        rm /etc/systemd/system/luxcena-neo.service
-        rm /usr/bin/luxcena-neo.sh
-        rm /usr/bin/lux-neo
+        header "Remove systemd service"
+        execCommand "systemctl stop luxcena-neo"
 
+        header "Delete lux-neo user"
+        execCommand "deluser lux-neo"
+
+        header "Uninstall luxcena-neo"
+        execCommand "rm -rf /opt/luxcena-neo"
+        execCommand "rm -f /etc/systemd/system/luxcena-neo.service"
+        execCommand "rm -f /usr/bin/luxcena-neo.sh"
+        execCommand "rm -f /usr/bin/lux-neo"
 
         tput setaf 2
         printf "\nEverything should now be gone.\n"
@@ -142,26 +198,17 @@ elif [ "$action" == "uninstall" ]; then
         tput sgr0
         tput setaf 8
         printf "Well, some dependencies still exists. Those are:\n"
-        printf " - rpi_ws281x-library\n"
-        printf " - packages (nodejs scons python-dev swig)\n"
+        printf " - packages (nodejs python3 python3-pip)\n"
         tput sgr0
     fi
 
 elif [ "$action" == "start" ]; then
-    systemctl start luxcena-neo
-    if [ "$2" == "boot" ]; then
-        systemctl enable luxcena-neo
-        printf "Now starting on boot...\n"
-    fi
-    printf "Luxcena-neo service started...\n"
+    header "Start luxcena-neo"
+    execCommand "systemctl start luxcena-neo"
 
 elif [ "$action" == "stop" ]; then
-    systemctl stop luxcena-neo
-    if [ "$2" == "boot" ]; then
-        systemctl disable luxcena-neo
-        printf "Not longer active on boot...\n"
-    fi
-    printf "Luxcena-neo service stopped...\n"
+    header "Stop luxcena-neo"
+    execCommand "systemctl stop luxcena-neo"
 
 elif [ "$action" == "status" ]; then
     printf "╭─────────────────────╮\n"

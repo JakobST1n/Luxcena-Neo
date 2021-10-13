@@ -1,7 +1,7 @@
 let fs = require("fs-extra");
 let url = require("url");
 let request = require('request');
-let exec = require("child_process").exec;
+const spawn = require('child_process').spawn;
 let logger = require(__appdir + "/src/Logger");
 
 let neoModules;
@@ -32,7 +32,7 @@ class VersionChecker {
             if (!error && response.statusCode === 200) {
                 let remotePackageJSON = JSON.parse(body);
                 let newestVersion = remotePackageJSON["version"];
-                if (this.VersionIsNewerThan(newestVersion, this.version)) {
+                if (newestVersion != this.version) {
                     logger.notice("A new version is available on \"" + this.repoBranch + "\" (v" + this.version + ")");
                     this.newVersion = true;
                 } else {
@@ -58,6 +58,14 @@ class VersionChecker {
             if (Number (checkParts[i]) < Number (currentParts[i])) { return false; }
         }
         return false;
+    }
+
+    doUpdate() {
+        spawn("luxcena-neo-cli.sh", ["update", ">>", "/tmp/luxcena-neo-update.log"], {
+            cwd: process.cwd(),
+            detached : true,
+            stdio: "inherit"
+        });
     }
 
 }
