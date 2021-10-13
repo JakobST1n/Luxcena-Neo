@@ -36,6 +36,7 @@
     // let remoteModes = [];
     openSocket.on("modelist", (modes) => {
         builtinModes = [];
+        userModes = [];
         for (let i = 0; i < modes.length; i++) {
             if (modes[i].substr(0, 8) === "builtin/") {
                 builtinModes.push([modes[i], modes[i].replace("builtin/", "")]);

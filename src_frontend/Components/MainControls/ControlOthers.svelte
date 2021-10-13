@@ -1,7 +1,7 @@
 <script>
 
     // This is a list of variables that we can change
-    let variables = [
+    export let variables = [
         {id: 1, name: "Speed", type: "range", value: 20, min: 0, max: 100},
         {id: 2, name: "Tingle intensity", type: "range", value: 40, min: 0, max: 255},
         {id: 3, name: "Amount of tingle", type: "range", value: 90, min: 0, max: 100},
