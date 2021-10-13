@@ -112,7 +112,7 @@ if [ "$action" == "update" ]; then
   tput rev
   printf '%s\n' "Luxcena-neo Updater"
   tput sgr0
-  printf '\e[93m%s\e[0m\n\n' "-------------------"
+  printf '\e[93m%s\e[0m\n' "-------------------"
 
   if [ "$EUID" -ne 0 ]; then
     echo "You need to run this script as root."
@@ -167,14 +167,14 @@ if [ "$action" == "update" ]; then
   execCommand "systemctl enable luxcena-neo"
   execCommand "systemctl start luxcena-neo"
 
-  printf "Update complete.\n"
+  printf "\nUpdate complete.\n"
   exit 0
 
 elif [ "$action" == "uninstall" ]; then
     tput setab 1
     printf '%s\n' "Luxcena Neo Uninstaller..."
     tput sgr0
-    printf '\e[93m%s\e[0m\n' "--------------------------"
+    printf '\e[93m%s\e[0m' "--------------------------"
     tput setaf 8
     printf "By uninstalling Luxcena-Neo you might loose all data, including your scripts.\n\n"
 
