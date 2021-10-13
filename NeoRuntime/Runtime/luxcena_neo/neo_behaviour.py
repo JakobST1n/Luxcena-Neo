@@ -56,6 +56,7 @@ class VariableType(Enum):
     FLOAT = 3
     COLOR = 4
     BOOL = 5
+    TRIGGER = 6
 
 class Variables:
 
@@ -264,3 +265,17 @@ class BooleanVariable(Variable):
             super(BooleanVariable, type(self)).value.fset(self, value)
         except:
             print("Attempted to set {} to \"{}\", which is not a valid bool...".format(self.name, value))
+
+class Trigger(self):
+
+    def __init__(self, name: str, **kwargs):
+        super().__init__(name, False, VariableType.TRIGGER, **kwargs)
+    
+    @Variable.value.setter
+    def value(self, value):
+        try:
+            value = bool(value)
+            if value: value = False
+            super(BooleanVariable, type(self)).value.fset(self, value)
+        except:
+            print("Attempted to set {} to \"{}\", which is not a valid bool...".format(self.name, value)) 

@@ -19,6 +19,7 @@
     let activeMode = "";
     
     let colorVariables = {};
+    let variables = {};
 
     function togglePower() {
         powerIsOn = !powerIsOn;
@@ -54,6 +55,13 @@
                 }
                     colorVariables = colorVariables;
                 break;
+            default:
+                if (value.value == null) {
+                    delete variables[name];
+                } else {
+                    variables[name] = value.value;
+                }
+                variables = variables;
         }
     }
     openSocket.on("modelist", (modelist) => {
@@ -135,5 +143,5 @@
     {#if Object.keys(colorVariables).length > 0}
         <ControlColors on:change={setColor} bind:colorVariables={colorVariables} />
     {/if}
-    <!-- <ControlOthers /> -->
+    <ControlOthers />
 </div>
