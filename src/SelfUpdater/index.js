@@ -37,7 +37,7 @@ class VersionChecker {
                     logger.notice("A new version is available on \"" + this.repoBranch + "\" (v" + this.version + ")");
                     this.newVersion = true;
                 } else {
-                    logger.info(`Running newest version (${newestVersion})`);
+                    logger.info(`Running newest version (${this.newestVersion})`);
                     this.newVersion = false;
                 }
             } else {
