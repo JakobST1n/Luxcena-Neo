@@ -16,10 +16,11 @@ class VersionChecker {
         this.checkFrequency = neoModules.userData.config.SelfUpdater.checkVersionInterval * 86400000;  // Takes in days.
         this.repoBranch = neoModules.userData.config.SelfUpdater.branch;
 
-        this.remotePackageJSON = "https://raw.githubusercontent.com" + url.parse(this.repoLink).pathname + "/" + this.repoBranch + "/package.json";
+        this.remotePackageJSON = "https://raw.githubusercontent.com/JakobST1n/Luxcena-Neo/" + this.repoBranch + "/package.json";
 
         this.newVersion = false;
-        this.newestVersion = this.checkVersion(this.remotePackageJSON);
+        this.newestVersion = this.version;
+        this.checkVersion(this.remotePackageJSON);
 
         this.updateChecker = setInterval(() => {
             let newVersion = this.checkVersion(this.remotePackageJSON);
@@ -31,15 +32,14 @@ class VersionChecker {
         request.get(this.remotePackageJSON, (error, response, body) => {
             if (!error && response.statusCode === 200) {
                 let remotePackageJSON = JSON.parse(body);
-                let newestVersion = remotePackageJSON["version"];
-                if (newestVersion != this.version) {
+                this.newestVersion = remotePackageJSON["version"];
+                if (this.newestVersion != this.version) {
                     logger.notice("A new version is available on \"" + this.repoBranch + "\" (v" + this.version + ")");
                     this.newVersion = true;
                 } else {
                     logger.info(`Running newest version (${newestVersion})`);
                     this.newVersion = false;
                 }
-                this.newestVersion = newestVersion;
             } else {
                 logger.notice("Could not find latest version! Please check you internet connection.");
             }
