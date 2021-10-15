@@ -266,7 +266,7 @@ class BooleanVariable(Variable):
         except:
             print("Attempted to set {} to \"{}\", which is not a valid bool...".format(self.name, value))
 
-class Trigger(self):
+class Trigger(Variable):
 
     def __init__(self, name: str, **kwargs):
         super().__init__(name, False, VariableType.TRIGGER, **kwargs)
