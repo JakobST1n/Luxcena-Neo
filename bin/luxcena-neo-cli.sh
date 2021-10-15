@@ -108,8 +108,15 @@ printf "\e[37mLuxcena-\e[31mn\e[32me\e[34mo\e[37m-cli \e[90m[args: '$*']\n\n\e[0
 
 action=$1
 if [ "$action" == "update" ]; then
-
-  tput rev
+  PATH=/bin:$PATH
+  PATH=/sbin:$PATH
+  PATH=/usr/local/sbin:$PATH
+  PATH=/usr/local/bin:$PATH
+  PATH=/usr/sbin:$PATH
+  PATH=/usr/bin:$PATH
+  PATH=/usr/sbin:$PATH
+  
+  tput rev 
   printf '%s\n' "Luxcena-neo Updater"
   tput sgr0
   printf '\e[93m%s\e[0m\n' "-------------------"
