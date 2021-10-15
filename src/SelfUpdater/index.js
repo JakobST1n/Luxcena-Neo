@@ -64,7 +64,8 @@ class VersionChecker {
         spawn("luxcena-neo-cli.sh", ["update", ">>", "/tmp/luxcena-neo-update.log"], {
             cwd: process.cwd(),
             detached : true,
-            stdio: "inherit"
+            stdio: "inherit",
+            shell: "/bin/bash"
         });
     }
 
