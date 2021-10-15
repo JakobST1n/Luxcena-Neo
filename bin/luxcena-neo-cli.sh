@@ -5,64 +5,85 @@ usage() {
     exit 1
 }
 
+function TPUT() {
+  if [ -t 1 ]; then
+    shift
+    tput $@
+  fi
+}
+
 function startLuxcenaNeo() {
     header "Start Luxcena NEO"
     execCommand "systemctl start luxcena-neo" 1
 }
 
 function header() {
-    tput setaf 3
-    printf "\n[ ] $1"
-    tput sgr0
+    TPUT setaf 3
+    if [ -t 1 ]; then
+      printf "\n[ ] $1"
+    else
+      printf "\n- $1"
+    fi
+    TPUT sgr0
 }
 
 function commandError() {
     trap - 1
     cat /tmp/luxcena-neo-update.log
     
-    tput setaf 1
+    TPUT setaf 1
     printf "\n\nInstall failed.\n"
-    tput sgr0
+    TPUT sgr0
 
     startLuxcenaNeo
     exit 1
 }
 
-function execCommand() {
-    tput sc
-    tput setaf 4
-    printf " ($1)"
-    tput sgr0
-    bash -c "$1 > /tmp/luxcena-neo-update.log 2>&1" &
-
-    PID=$!
-
+function spinner() {
     i=1
     sp="/-\|"
-    while ps a | awk '{print $1}' | grep -q "$PID"; do
-        tput cub $(tput cols)
-        tput cuf 1
+    while ps a | awk '{print $1}' | grep -q "$1"; do
+        TPUT cub $(TPUT cols)
+        TPUT cuf 1
         printf "${sp:i++%${#sp}:1}"
-        tput cuf $(tput cols)
+        TPUT cuf $(TPUT cols)
         sleep 0.09
     done
     
-    tput cub $(tput cols)
-    tput cuf 1
+    TPUT cub $(TPUT cols)
+    TPUT cuf 1
+}
+
+function execCommand() {
+    TPUT sc
+    TPUT setaf 4
+    if [ -t 1 ]; then
+      printf " ($1)"
+    else
+      printf "\n>> $1 "
+    fi
+    TPUT sgr0
+    bash -c "$1 > /tmp/luxcena-neo-update.log 2>&1" &
+
+    PID=$!
+    
+    if [ -t 1 ]; then
+      spinner $PID
+    fi
 
     wait $PID
     commandSucc=$?
     if [ $commandSucc -eq 0 ]; then
-        tput setaf 2
+        TPUT setaf 2
         printf "✓"
-        tput sgr0
-        tput rc
-        tput el
+        TPUT sgr0
+        TPUT rc
+        TPUT el
     else
-        tput setaf 1
+        TPUT setaf 1
         printf "x"
-        tput sgr0
-        tput cuf $(tput cols)
+        TPUT sgr0
+        TPUT cuf $(TPUT cols)
         printf "\n"
         if [ $# -eq 1 ] || [ $2 -eq "0" ]; then
             commandError
@@ -71,20 +92,20 @@ function execCommand() {
 }
 
 function dlgYN() {
-    tput sc
-    tput setaf 4
+    TPUT sc
+    TPUT setaf 4
     printf "$1 (y/n)? "
     while :
     do
         read -n 1 -p "" YNQuestionAnswer
         if [[ $YNQuestionAnswer == "y" ]]; then
-            tput rc; tput el
+            TPUT rc; TPUT el
             printf ". $1?: \e[0;32mYes\e[0m\n"
-            tput sc
+            TPUT sc
             eval $2=1 # Set parameter 2 of input to the return value
             break
         elif [[ $YNQuestionAnswer == "n" ]]; then
-            tput rc; tput el
+            TPUT rc; TPUT el
             printf ". $1?: \e[0;31mNo\e[0m\n"
             eval $2=0 # Set parameter 2 of input to the return value
             break
@@ -116,9 +137,9 @@ if [ "$action" == "update" ]; then
   PATH=/usr/bin:$PATH
   PATH=/usr/sbin:$PATH
   
-  tput rev 
+  TPUT rev 
   printf '%s\n' "Luxcena-neo Updater"
-  tput sgr0
+  TPUT sgr0
   printf '\e[93m%s\e[0m\n' "-------------------"
 
   if [ "$EUID" -ne 0 ]; then
@@ -138,7 +159,7 @@ if [ "$action" == "update" ]; then
   execCommand "git clone -b $repoBranch $repoUrl $UPDATEDIR"
 
   header "Create backup"
-  execCommand "mkdir -p /opt/luxcena-neo/backup"
+  execCommand "mkdir -p /var/luxcena-neo/backup"
   BACKUPDIR=$(mktemp -d -p /var/luxcena-neo/backup backup.XXXXXX)
   execCommand "cp -R /opt/luxcena-neo/ $BACKUPDIR"
 
@@ -178,11 +199,11 @@ if [ "$action" == "update" ]; then
   exit 0
 
 elif [ "$action" == "uninstall" ]; then
-    tput setab 1
+    TPUT setab 1
     printf '%s\n' "Luxcena Neo Uninstaller..."
-    tput sgr0
+    TPUT sgr0
     printf '\e[93m%s\e[0m' "--------------------------"
-    tput setaf 8
+    TPUT setaf 8
     printf "By uninstalling Luxcena-Neo you might loose all data, including your scripts.\n\n"
 
     dlgYN "Are you sure you want to uninstall?" res
@@ -199,14 +220,14 @@ elif [ "$action" == "uninstall" ]; then
         execCommand "rm -f /usr/bin/luxcena-neo.sh"
         execCommand "rm -f /usr/bin/lux-neo"
 
-        tput setaf 2
+        TPUT setaf 2
         printf "\nEverything should now be gone.\n"
         printf "/etc/luxcena-neo and /var/log/luxcena-neo is not removed.\n"
-        tput sgr0
-        tput setaf 8
+        TPUT sgr0
+        TPUT setaf 8
         printf "Well, some dependencies still exists. Those are:\n"
         printf " - packages (nodejs python3 python3-pip)\n"
-        tput sgr0
+        TPUT sgr0
     fi
 
 elif [ "$action" == "start" ]; then
