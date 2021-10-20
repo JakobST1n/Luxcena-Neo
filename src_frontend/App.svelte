@@ -3,6 +3,7 @@
 	import { wrap } from 'svelte-spa-router/wrap';
 	import MainRoute from "./routes/MainRoute.svelte";
 	import EditorRoute from "./routes/EditorRoute.svelte";
+	import Updating from "./routes/Updating.svelte";
 	import LoginRoute from "./routes/LoginRoute.svelte";
 	import WidgetRoute from "./routes/WidgetRoute.svelte";
 	import UnknownRoute from "./routes/UnknownRoute.svelte";
@@ -15,6 +16,9 @@
 	}));
 	main_router_routes.set("/editor/*", wrap({
 		component: EditorRoute
+	}));
+	main_router_routes.set("/updating", wrap({
+		component: Updating
 	}));
 	main_router_routes.set("/login", wrap({
 		component: LoginRoute

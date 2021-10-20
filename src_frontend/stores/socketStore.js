@@ -19,6 +19,11 @@ openSocket.io.on("reconnect_attempt", () => {
 openSocket.io.on("reconnect", () => {
     openSocketReconnecting.set(false);
 });
+openSocket.on("updater", (state) => {
+    if (state == "start") {
+        replace("/updating");
+    }
+});
 
 let storedSessionToken = localStorage.getItem("sessionToken");
 

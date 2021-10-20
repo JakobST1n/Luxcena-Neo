@@ -99,6 +99,10 @@ function createOpenSocketNamespace(io) {
         socket.on("disconnect", () => {
             logger.access(`SOCKET:open Client (${socket.id}@${socket.handshake.headers.host}) disconnected.`);
         });
+
+        if (neoModules.selfUpdater.updater.updating) {
+            socket.emit("updater", "start");
+        }
     });
 
     neoModules.neoRuntimeManager.event.on("change", (name, value) => {
@@ -110,6 +114,12 @@ function createOpenSocketNamespace(io) {
         } else {
             openNamespace.emit("var", name, value);
         }
+    });
+    neoModules.selfUpdater.updater.event.on("start", () => {
+        openNamespace.emit("updater", "start");
+    });
+    neoModules.selfUpdater.updater.event.on("end", () => {
+        openNamespace.emit("updater", "end");
     });
 }
 
@@ -194,7 +204,7 @@ function createAuthorizedNamespace(io) {
             fn({success: true});
         });
         socket.on("system:update_version", () => {
-            neoModules.selfUpdater.doUpdate();
+            neoModules.selfUpdater.updater.forceUpdate();
         });
 
         /* SSLCert */
@@ -306,6 +316,16 @@ function createAuthorizedNamespace(io) {
                 logger.info("Stopped debugger because client disconnected")
             }
         });
+    });
+
+    neoModules.selfUpdater.updater.event.on("step", (step) => {
+        authorizedNamespace.emit("updater:step", step);
+    });
+    neoModules.selfUpdater.updater.event.on("command", (command) => {
+        authorizedNamespace.emit("updater:command", command);
+    });
+    neoModules.selfUpdater.updater.event.on("error", (updateLog) => {
+        authorizedNamespace.emit("updater:error", updateLog);
     });
 }
 
