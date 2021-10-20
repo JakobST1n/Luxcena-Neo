@@ -42,6 +42,10 @@ class Updater {
         this.step = null;
         this.command = null;
         this.event = new EventEmitter();
+
+        this.updatedir = null;
+        this.backupdir = null;
+        this.backupcomplete = false;
         
         this.updatelog = [];
     }
@@ -64,6 +68,10 @@ class Updater {
         this.updatelog = [];
         this.step = null;
         this.command = null;
+        this.updatedir = null;
+        this.backupdir = null;
+        this.backupcomplete = false;
+
         if (!isInstalledInDefaultLocation()) {
             return {success: false, reason: "not installed in default location", detail: __appdir};
         }
@@ -71,42 +79,46 @@ class Updater {
         this.event.emit("start");
     
         neoModules.neoRuntimeManager.stopMode();
-        let updatedir = null;
-        let backupdir = null;
+
         try {
             // Download update
-            this.setStep("Downloading update");
+            this.setStep("Downloading update (1/8)");
             this.setCommand("Create updatedir");
-            updatedir = createUniqueDir("/tmp", "luxcena-neo.update");
-            await this.downloadUpdate(updatedir);
+            this.updatedir = createUniqueDir("/tmp", "luxcena-neo.update");
+            await this.downloadUpdate(this.updatedir);
     
             // Create backup
-            this.setStep("Creating backup");
+            this.setStep("Creating backup (2/8)");
             this.setCommand("Create backupdir");
-            backupdir = createUniqueDir("/var/luxcena-neo/backups", "backup");
-            this.setCommand(`Copy ${__appdir} into ${backupdir}`);
-            await fs.copySync(__appdir, backupdir);
+            this.backupdir = createUniqueDir("/var/luxcena-neo/backups", "backup");
+            this.setCommand(`Copy ${__appdir} into ${this.backupdir}`);
+            await fs.copy(__appdir, this.backupdir);
+            this.backupcomplete = true;
     
             // Install update
-            this.setStep("Installing update");
-            this.setCommand(`Copy ${updatedir} into /opt/luxcena-neo`);
-            await fs.copySync(updatedir, __appdir);
+            this.setStep("Installing update (3/8)");
+            this.setCommand(`Copy ${this.updatedir} into /opt/luxcena-neo`);
+            await fs.copy(this.updatedir, __appdir);
     
             // Install dependencies
-            this.setStep("Installing dependencies");
+            this.setStep("Installing dependencies (4/8)");
             await this.installDependencies();
     
             // Create python virtualenv
-            this.setStep("Making virtualenv");
+            this.setStep("Making virtualenv (5/8)");
             await this.makeVirtualenv();
     
             // Build source code
-            this.setStep("Building source");
-            this.build();
+            this.setStep("Building source (6/8)");
+            await this.build();
+
+            // Cleanup
+            this.setStep("Cleaning up (7/8)");
+            await this.cleanup();
     
             // Restart self, systemd service restart policy will start us up again.
-            this.setStep("Stopping luxcena neo service in the hope that systemd will restart it.");
-            this.command("process.exit(0)");
+            this.setStep("Stopping luxcena neo service in the hope that systemd will restart it. (8/8)");
+            this.setCommand("EXIT");
             process.exit(0);
     
         } catch (e) {
@@ -121,7 +133,18 @@ class Updater {
             }
             this.updatelog.push(logText);
 
-            // Restore here
+            try {
+                if (this.backupcomplete && (this.backupdir != null)) {
+                    this.setStep("Restoring backup");
+                    this.setCommand(`Copy ${this.backupdir} into /opt/luxcena-neo`);
+                    await fs.copy(this.backupdir, __appdir);
+                }
+                this.setStep("Cleaning up");
+                await this.cleanup();
+            } catch (e) {
+                this.updatelog.push(e.toString());
+                console.log(e);
+            }
 
             this.event.emit("error", this.updatelog);
             neoModules.neoRuntimeManager.startMode();
@@ -187,11 +210,11 @@ class Updater {
     async makeVirtualenv() {
         this.setCommand("Deleting old virtualenv");
         if (fs.existsSync(`${__appdir}/NeoRuntime/Runtime/venv`)) {
-            fs.unlinkSync(`${__appdir}/NeoRuntime/Runtime/venv`);
+            await fs.remove(`${__appdir}/NeoRuntime/Runtime/venv`);
         }
 
         await this.run("virtualenv", ["-p", "/usr/bin/python3", `${__appdir}/NeoRuntime/Runtime/venv`]);
-        await this.run("sh", ["-c", `source ${__appdir}/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x`]);
+        await this.run("sh", ["-c", `. ${__appdir}/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x`]);
     }
 
     async build() {
@@ -202,12 +225,23 @@ class Updater {
 
     async installSystemdService() {
         this.setCommand("Deleting old systemd service");
-        fs.unlinkSync("/etc/systemd/system/luxcena-neo.service");
+        await fs.remove("/etc/systemd/system/luxcena-neo.service");
         this.setCommand("Installing new systemd service");
-        fs.copySync("/opt/luxcena-neo/bin/luxcena-neo.service", "/etc/systemd/system/luxcena-neo.service");
+        await fs.copy("/opt/luxcena-neo/bin/luxcena-neo.service", "/etc/systemd/system/luxcena-neo.service");
         await this.run("systemctl", ["daemon-reload"]);
         await this.run("systemctl", ["enable", "luxcena-neo"]);
-    }   
+    }
+
+    async cleanup() {
+        if (this.updatedir != null) {
+            this.setCommand(`Removing temporary update files ${this.updatedir}`);
+            await fs.remove(this.updatedir);
+        }
+        if (this.backupdir != null) {
+            this.setCommand(`Removing ${this.backupdir}, thinking everything went fine :)`);
+            await fs.remove(this.backupdir);
+        }
+    }
 
 }
 
@@ -221,10 +255,11 @@ class VersionChecker {
         this.checkFrequency = neoModules.userData.config.SelfUpdater.checkVersionInterval * 86400000;  // Takes in days.
         this.repoBranch = neoModules.userData.config.SelfUpdater.branch;
 
-        this.remotePackageJSON = "https://raw.githubusercontent.com" + url.parse(this.repoLink).pathname + "/" + this.repoBranch + "/package.json";
+        this.remotePackageJSON = "https://raw.githubusercontent.com/JakobST1n/Luxcena-Neo/" + this.repoBranch + "/package.json";
 
         this.newVersion = false;
-        this.newestVersion = this.checkVersion(this.remotePackageJSON);
+        this.newestVersion = this.version;
+        this.checkVersion(this.remotePackageJSON);
 
         this.updateChecker = setInterval(() => {
             let newVersion = this.checkVersion(this.remotePackageJSON);
@@ -237,15 +272,14 @@ class VersionChecker {
         request.get(this.remotePackageJSON, (error, response, body) => {
             if (!error && response.statusCode === 200) {
                 let remotePackageJSON = JSON.parse(body);
-                let newestVersion = remotePackageJSON["version"];
-                if (newestVersion != this.version) {
+                this.newestVersion = remotePackageJSON["version"];
+                if (this.newestVersion != this.version) {
                     logger.notice("A new version is available on \"" + this.repoBranch + "\" (v" + this.version + ")");
                     this.newVersion = true;
                 } else {
-                    logger.info(`Running newest version (${newestVersion})`);
+                    logger.info(`Running newest version (${this.newestVersion})`);
                     this.newVersion = false;
                 }
-                this.newestVersion = newestVersion;
             } else {
                 logger.notice("Could not find latest version! Please check you internet connection.");
             }
