@@ -4,13 +4,15 @@
 <script>
     import { onDestroy } from "svelte";
 	import { pop } from "svelte-spa-router";
-    import { EditorState, EditorView, basicSetup } from "@codemirror/basic-setup"
+    import { EditorState, basicSetup } from "@codemirror/basic-setup"
+    import { EditorView, keymap } from "@codemirror/view"
+    import { indentWithTab } from "@codemirror/commands"
+    import { indentUnit } from '@codemirror/language'
     import { python } from "@codemirror/lang-python"
     import { HighlightStyle, tags as t } from "@codemirror/highlight"
     import { notif } from "../../stores/notifs";
     import TopBar from "./TopBar.svelte";
     import Pane from "./Pane.svelte";
-    import ControlComponents from "../MainControls/ControlComponents.svelte";
     import Controls from "./Controls.svelte";
     import Output from "./Output.svelte";
     import Simulation from "./Simulation.svelte";
@@ -53,8 +55,10 @@
         codeEditorView = new EditorView({
             state: EditorState.create({
                 extensions: [
-                    basicSetup, 
+                    basicSetup,
+                    keymap.of([indentWithTab]),
                     python(),
+                    indentUnit.of("    "),
                     EditorView.updateListener.of(update => {
                         if (update.docChanged) {
                             codeEditorHasChanges = true;
