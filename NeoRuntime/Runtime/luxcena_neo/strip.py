@@ -49,13 +49,8 @@ class Strip:
         self.strip.begin()
 
         # Blank out all the LEDs
-        i = 0
-        while True:
-            self.strip.setPixelColor(i, 0)
-            i += 1
-            if (i > self.LED_COUNT): break
-        self.strip.show()
-
+        self.blank()
+        
         # Setup matrix
         print("  * Generating matrix")
         # try:
@@ -150,6 +145,12 @@ class Strip:
     def get_pixel_color(self, n):
         """Get the 24-bit RGB color value for the LED at position n."""
         return self.strip.getPixelColor(n)
+    
+    def blank(self):
+        """Will turn off all pixels, this also calls show for you."""
+        for n in range(self.LED_COUNT):
+            self.set_pixel_color(n, 0)
+        self.show()
 
 
 def color_from_rgb(red, green, blue, white=0):

@@ -80,6 +80,7 @@ class NeoRuntime:
             traceback.print_exc()
         finally:
             self.__close_socket()
+        self.__strip.blank()
 
 
     def __bind_socket(self):
