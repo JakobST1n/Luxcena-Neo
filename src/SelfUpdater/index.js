@@ -154,6 +154,8 @@ class Updater {
             // Restart self, systemd service restart policy will start us up again.
             this.setStep("Stopping luxcena neo service in the hope that systemd will restart it. (8/8)");
             this.setCommand("EXIT");
+            this.updating = false;
+            this.event.emit("end");
             process.exit(0);
     
         } catch (e) {
@@ -184,8 +186,6 @@ class Updater {
             this.event.emit("error", this.updatelog);
             neoModules.neoRuntimeManager.startMode();
         }
-        this.updating = false;
-        this.event.emit("end");
     }
 
     /**
@@ -193,7 +193,7 @@ class Updater {
      */
     async run(cmd, opts) {
         this.setCommand(`${cmd} ` + opts.join(" "));
-        await promiseSpawn(cmd, opts);
+        return await promiseSpawn(cmd, opts);
     }
 
     /**

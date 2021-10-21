@@ -127,11 +127,13 @@ execCommand "mkdir -p \"/var/log/luxcena-neo\""
 execCommand "chown $username:$username \"/var/log/luxcena-neo\""
 
 # Choose branch to install
+TPUT cnorm
 printf '\n%s' "Which branch do you want to install (default: master)? "
 read BRANCH
 if [ -z "$BRANCH" ]; then
     BRANCH="master"
 fi
+TPUT civis
 
 # Get source code
 header "Fetch source code"

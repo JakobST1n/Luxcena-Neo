@@ -102,6 +102,7 @@ function execCommand() {
 function dlgYN() {
     TPUT sc
     TPUT setaf 4
+    TPUT cnorm
     printf "$1 (y/n)? "
     while :
     do
@@ -127,6 +128,7 @@ printf "By uninstalling Luxcena-Neo you might loose all data, including your scr
 
 dlgYN "Are you sure you want to uninstall?" res
 if [ $res -eq 1 ]; then
+    TPUT civis
     header "Stop systemd service"
     execCommand "systemctl stop luxcena-neo"
 
