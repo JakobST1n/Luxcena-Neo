@@ -30,7 +30,7 @@ let modeDebuggerActive = false;
 /** @type {string} Should be the modeId the debugger is attached to */
 let modeDebuggerId = null;
 /** @type {object} Handler for proc:start when debugger is active */
-let modeDebuggerProcStartHandler;
+let modeDebuggerProcStartHandler = null;
 /** @type {object} The last received matrix setup */
 let matrix = null;
 
@@ -254,11 +254,13 @@ function startDebugger(debuggerModeId) {
     if (modeDebuggerActive) { return {success: false, reason: "debugger already active"}; }
     logger.info(`Starting debugger for ${debuggerModeId}`);
 
-    modeDebuggerProcStartHandler = eventEmitter.on("proc:start", () => {
-        setTimeout(() => {
-            ipc.sendCommand(IPC.COMMAND.SET_SEND_STRIP_BUF, true);
-        }, 500);
-    });
+    if (modeDebuggerProcStartHandler == null) {
+        modeDebuggerProcStartHandler = eventEmitter.on("proc:start", () => {
+            setTimeout(() => {
+                ipc.sendCommand(IPC.COMMAND.SET_SEND_STRIP_BUF, true);
+            }, 500);
+        });
+    }
 
     modeDebuggerActive = true;
     modeDebuggerId = debuggerModeId;
@@ -290,6 +292,7 @@ function stopDebugger() {
     logger.info(`Stopping debugger`);
     modeDebuggerActive = false;
     eventEmitter.removeAllListeners("proc:start", modeDebuggerProcStartHandler);
+    modeDebuggerProcStartHandler = null;
     ipc.sendCommand(IPC.COMMAND.SET_SEND_STRIP_BUF, false);
     return {success: true}
 }
