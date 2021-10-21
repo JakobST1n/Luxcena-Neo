@@ -1,13 +1,16 @@
 <script>
+	import { openSocket } from "../../stores/socketStore";
+    import Toggle from "../../ComponentLib/Toggle.svelte";
 
-    // This is a list of variables that we can change
-    export let variables = [
-        {id: 1, name: "Speed", type: "range", value: 20, min: 0, max: 100},
-        {id: 2, name: "Tingle intensity", type: "range", value: 40, min: 0, max: 255},
-        {id: 3, name: "Amount of tingle", type: "range", value: 90, min: 0, max: 100},
-        {id: 4, name: "Variable of unknown type", type: "date", value: "January"}
-    ];
+    export let variables = {};
 
+    function setVar(ev) {
+        if (ev.target.type == "checkbox") {
+            openSocket.emit("var:set", ev.target.id, ev.target.checked);
+        } else {
+            openSocket.emit("var:set", ev.target.id, ev.target.value);
+        }
+    };
 </script>
 
 <style>
@@ -19,18 +22,53 @@
         padding: 15px;
         text-align: left;
     }
+    label {
+        width: 100%;
+    }
+    .var-group {
+        display: flex;
+        margin-top: 5px;
+    }
     input {
         width: 100%;
     }
+    button {
+        width: 100%;
+        padding: 10px;
+        background-color: var(--grey-300);
+        border: none;
+        border-radius: 15px;
+        margin-top: 5px;
+    }
+    button:hover { filter: brightness(0.9); }
+    button:active { filter: brightness(0.85); }
+
 </style>
 
 <div class="wrapper drop-shadow">
-    {#each variables as variable}
-        <label for={variable.id}>{variable.name}</label>
-        {#if variable.type == "range"}
-            <input type="range" id={variable.id} min={variable.min} max={variable.max} value={variable.value}>
-        {:else}
-            <input type="text" id={variable.id} value={variable.value} />
+    {#each Object.entries(variables) as [name, value]}
+    <div class:var-group={["BOOL"].includes(value.type)}>
+        {#if !["TRIGGER"].includes(value.type)}
+        <label for={name}>{name}</label>
         {/if}
+
+        {#if value.type == "INT"}
+        <div class="var-group">
+            <input type="range" id={name} min={value.min} max={value.max} bind:value={value.value} on:change={setVar}>
+            {value.value}
+        </div>
+        {:else if value.type == "FLOAT"}
+        <div class="var-group">
+            <input type="range" id={name} min={value.min} max={value.max} step={value.step} bind:value={value.value} on:change={setVar}>
+            {value.value}
+        </div>
+        {:else if value.type == "BOOL"}
+        <Toggle id="{name}" bind:checked={value.value} on:change={setVar} />
+        {:else if value.type == "TRIGGER"}
+            <button type="button" id="{name}" value="true" on:click={setVar}>Trigger {name}</button>
+        {:else}
+            <input type="text" id={name} bind:value={value.value} on:blur={setVar} />
+        {/if}
+    </div>
     {/each}
 </div>

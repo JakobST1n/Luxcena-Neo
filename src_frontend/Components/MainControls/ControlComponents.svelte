@@ -59,7 +59,7 @@
                 if (value.value == null) {
                     delete variables[name];
                 } else {
-                    variables[name] = value.value;
+                    variables[name] = value;
                 }
                 variables = variables;
         }
@@ -143,5 +143,7 @@
     {#if Object.keys(colorVariables).length > 0}
         <ControlColors on:change={setColor} bind:colorVariables={colorVariables} />
     {/if}
-    <ControlOthers />
+    {#if Object.keys(variables).length > 0}
+    <ControlOthers bind:variables={variables} />
+    {/if}
 </div>

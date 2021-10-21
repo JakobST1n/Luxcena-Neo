@@ -210,7 +210,7 @@ class IntegerVariable(Variable):
     def __init__(self, name: str, default: int = 0, min_val: int = 0, max_val: int = 255, **kwargs):
         self.__min = min_val
         self.__max = max_val
-        super().__init__(name, default, VariableType.INT)
+        super().__init__(name, default, VariableType.INT, **kwargs)
     
     @Variable.value.setter
     def value(self, value):
@@ -229,10 +229,11 @@ class IntegerVariable(Variable):
 
 class FloatVariable(Variable):
 
-    def __init__(self, name: str, default: float = 0.0, min_val: float = 0.0, max_val: float = 255.0, **kwargs):
+    def __init__(self, name: str, default: float = 0.0, min_val: float = 0.0, max_val: float = 255.0, step: float = 0.5, **kwargs):
         self.__min = min_val
         self.__max = max_val
-        super().__init__(name, default, VariableType.FLOAT)
+        self.__step = step
+        super().__init__(name, default, VariableType.FLOAT, **kwargs)
     
     @Variable.value.setter
     def value(self, value):
@@ -249,19 +250,19 @@ class FloatVariable(Variable):
         return round(self.value, 2)
 
     def to_dict(self):
-        return {"name": self.name, "value": self.value, "type": self.var_type, "min": self.__min, "max": self.__max}
+        return {"name": self.name, "value": self.value, "type": self.var_type, "min": self.__min, "max": self.__max, "step": self.__step}
 
 
 
 class BooleanVariable(Variable):
 
     def __init__(self, name: str, default: bool, **kwargs):
-        super().__init__(name, default, VariableType.BOOL)
+        super().__init__(name, default, VariableType.BOOL, **kwargs)
     
     @Variable.value.setter
     def value(self, value):
         try:
-            value = bool(value)
+            value = value.lower() == "true"
             super(BooleanVariable, type(self)).value.fset(self, value)
         except:
             print("Attempted to set {} to \"{}\", which is not a valid bool...".format(self.name, value))
@@ -273,9 +274,4 @@ class Trigger(Variable):
     
     @Variable.value.setter
     def value(self, value):
-        try:
-            value = bool(value)
-            if value: value = False
-            super(BooleanVariable, type(self)).value.fset(self, value)
-        except:
-            print("Attempted to set {} to \"{}\", which is not a valid bool...".format(self.name, value)) 
+        super(Trigger, type(self)).value.fset(self, False)

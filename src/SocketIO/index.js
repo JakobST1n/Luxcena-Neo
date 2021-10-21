@@ -53,7 +53,7 @@ function createOpenSocketNamespace(io) {
             socket.emit("power", neoModules.neoRuntimeManager.mode.globvars.get().power_on);
         });
         socket.on("var:set", (name, value) => {
-            neoModules.neoRuntimeManager.mode.variables.set(name, value);
+            neoModules.neoRuntimeManager.mode.variables.set(name, value.toString());
         });
         socket.on("vars:get", () => {
             socket.emit("vars", neoModules.neoRuntimeManager.mode.variables.get());

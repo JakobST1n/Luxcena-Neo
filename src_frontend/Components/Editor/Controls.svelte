@@ -13,12 +13,17 @@
     }
     function setPower() { openSocket.emit("power:set", power_on); }
     function setVar(ev) {
-        openSocket.emit("var:set", ev.target.id, ev.target.value);
+        if (ev.target.type == "checkbox") {
+            openSocket.emit("var:set", ev.target.id, ev.target.checked);
+        } else {
+            openSocket.emit("var:set", ev.target.id, ev.target.value);
+        }
     }
 
     openSocket.on("power", (power) => power_on = power);
     openSocket.on("brightness", (value) => brightnessValue = value);
     openSocket.on("vars", (vars) => variables = vars);
+    openSocket.on("vars", (vars) => console.log(vars));
     openSocket.on("var", (name, value) => {
         name = name.replace("variable/", "");
         if (value.value == null) {
@@ -27,6 +32,7 @@
             variables[name] = value;
         }
         variables = variables;
+        console.log(variables);
     });
 
     onMount(() => {
@@ -75,9 +81,25 @@
     </div>
 
     {#each Object.entries(variables) as [name, value]}
-    <div>
-        <label for="{name}"><PrettyVar varText={name} /></label>
+    <div class:var-group={["BOOL", "TRIGGER"].includes(value.type)}>
+    <label for="{name}"><PrettyVar varText={name} /></label>
+        {#if value.type == "INT"}
+        <div class="var-group">
+            <input type="range" id="{name}" bind:value={value.value} on:change={setVar} min={value.min} max={value.max} />
+            {value.value}
+        </div>
+        {:else if value.type == "FLOAT"}
+        <div class="var-group">
+            <input type="range" id="{name}" bind:value={value.value} on:change={setVar} min={value.min} max={value.max} step={value.step} />
+            {value.value}
+        </div>
+        {:else if value.type == "BOOL"}
+            <input type="checkbox" id="{name}" bind:checked={value.value} on:change={setVar} />
+        {:else if value.type == "TRIGGER"}
+            <button type="button" id="{name}" value="true" on:click={setVar}>Trigger</button>
+        {:else}
         <input type="text" id="{name}" bind:value={value.value} on:blur={setVar} />
+        {/if}
     </div>
     {/each}
 </div>

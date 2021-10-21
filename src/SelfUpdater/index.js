@@ -283,11 +283,11 @@ class SelfUpdater {
                     this.remotePackageJSON = JSON.parse(body);
                     this.remoteVersionNumber = this.remotePackageJSON["version"];
                     if (this.localVersionNumber != this.remoteVersionNumber) {
-                        logger.notice("A new version is available on \"" + this.repoBranch + "\" (v" + this.version + ")");
+                        logger.notice("A new version is available on \"" + this.branch + "\" (v" + this.remoteVersionNumber + ")");
                         this.newVersion = true;
 
                     } else {
-                        logger.info(`Running newest version (${this.newestVersion})`);
+                        logger.info(`Running newest version (${this.localVersionNumber})`);
                         this.newVersion = false;
                     }
                 } else {
