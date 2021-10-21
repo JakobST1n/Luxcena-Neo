@@ -25,7 +25,6 @@ function ensureMainConfig() {
     if (config.HTTP.port == null) { config.HTTP.port = 443; }
 
     if (config.SelfUpdater == null) { config.SelfUpdater = {}; }
-    if (config.SelfUpdater.branch == null) { config.SelfUpdater.branch = "master"; }
     if (config.SelfUpdater.checkVersionInterval == null) { config.SelfUpdater.checkVersionInterval = 1; }
     if (config.SelfUpdater.automaticUpdate == null) { config.SelfUpdater.automaticUpdate = false; }
 

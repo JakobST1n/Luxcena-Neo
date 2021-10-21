@@ -190,18 +190,19 @@ function createAuthorizedNamespace(io) {
 
         /* SelfUpdater */
         socket.on("version:current_number", () => {
-            socket.emit("version:current_number", neoModules.selfUpdater.version);
+            socket.emit("version:current_number", neoModules.selfUpdater.localVersionNumber);
         });
         socket.on("version:branch", (fn) => {
-            socket.emit("version:branch", neoModules.selfUpdater.repoBranch);
+            socket.emit("version:branch", neoModules.selfUpdater.branch);
         });
         socket.on("version:newest_number", (fn) => {
-            socket.emit("version:newest_number", neoModules.selfUpdater.newestVersion);
+            socket.emit("version:newest_number", neoModules.selfUpdater.remoteVersionNumber);
         });
         socket.on("version:check_for_update", (fn) => {
-            neoModules.selfUpdater.checkVersion();
-            socket.emit("version:newest_number", neoModules.selfUpdater.newestVersion);
-            fn({success: true});
+            neoModules.selfUpdater.checkVersion().then(() => {
+                socket.emit("version:newest_number", neoModules.selfUpdater.remoteVersionNumber);
+                fn({success: true});
+            });
         });
         socket.on("system:update_version", () => {
             neoModules.selfUpdater.updater.forceUpdate();

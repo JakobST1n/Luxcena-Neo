@@ -35,6 +35,41 @@ function createUniqueDir(path, prefix) {
     }
 }
 
+/**
+ * Spawn a command, and return a promise which resolves/rejects when that
+ * command ends.
+ */
+function promiseSpawn(cmd, args) {
+    return new Promise(function(resolve, reject) {
+        let child = spawn(cmd, args);
+
+        let stdout = "";
+        let stderr = "";
+
+        child.on('exit', (code, sig) => {
+            if (code == 0) {
+                resolve({
+                    code: code,
+                    out: stdout,
+                    err: stderr
+                });
+            } else {
+                reject({
+                    code: code,
+                    out: stdout,
+                    err: stderr
+                });
+            }
+        });
+        child.stdout.on('data', data => {
+            stdout += data.toString();
+        });
+        child.stderr.on('data', data => {
+            stderr += data.toString();
+        });
+    });
+}
+
 class Updater {
 
     constructor() {
@@ -156,36 +191,9 @@ class Updater {
     /**
      * Spawn a new command, return a promise.
      */
-    run(cmd, opts) {
+    async run(cmd, opts) {
         this.setCommand(`${cmd} ` + opts.join(" "));
-        return new Promise(function(resolve, reject) {
-            let child = spawn(cmd, opts);
-    
-            let stdout = "";
-            let stderr = "";
-    
-            child.on('exit', (code, sig) => {
-                if (code == 0) {
-                    resolve({
-                        code: code,
-                        out: stdout,
-                        err: stderr
-                    });
-                } else {
-                    reject({
-                        code: code,
-                        out: stdout,
-                        err: stderr
-                    });
-                }
-            });
-            child.stdout.on('data', data => {
-                stdout += data.toString();
-            });
-            child.stderr.on('data', data => {
-                stderr += data.toString();
-            });
-        });
+        await promiseSpawn(cmd, opts);
     }
 
     /**
@@ -245,64 +253,56 @@ class Updater {
 
 }
 
-class VersionChecker {
+class SelfUpdater {
 
     constructor() {
-        this.CPackageJson = JSON.parse(fs.readFileSync(__appdir + "/package.json"));
-        this.version = this.CPackageJson["version"];
-        this.repoLink = this.CPackageJson["repository"]["url"];
-
-        this.checkFrequency = neoModules.userData.config.SelfUpdater.checkVersionInterval * 86400000;  // Takes in days.
-        this.repoBranch = neoModules.userData.config.SelfUpdater.branch;
-
-        this.remotePackageJSON = "https://raw.githubusercontent.com/JakobST1n/Luxcena-Neo/" + this.repoBranch + "/package.json";
-
+        this.branch;
+        this.repoUrl;
+        this.localPackageJson;
+        this.remotePackageJSON
+        this.localVersionNumber;
+        this.remoteVersionNumber;
         this.newVersion = false;
-        this.newestVersion = this.version;
-        this.checkVersion(this.remotePackageJSON);
 
+        this.checkVersion(this.remotePackageJSON);
         this.updateChecker = setInterval(() => {
-            let newVersion = this.checkVersion(this.remotePackageJSON);
-        }, this.checkFrequency);
+            this.checkVersion();
+        }, neoModules.userData.config.SelfUpdater.checkVersionInterval * 86400000);
 
         this.updater = new Updater();
     }
 
-    checkVersion() {
-        request.get(this.remotePackageJSON, (error, response, body) => {
-            if (!error && response.statusCode === 200) {
-                let remotePackageJSON = JSON.parse(body);
-                this.newestVersion = remotePackageJSON["version"];
-                if (this.newestVersion != this.version) {
-                    logger.notice("A new version is available on \"" + this.repoBranch + "\" (v" + this.version + ")");
-                    this.newVersion = true;
+    async checkVersion() {
+        this.localPackageJson = JSON.parse(fs.readFileSync(__appdir + "/package.json"));
+        this.localVersionNumber = this.localPackageJson["version"];
+        this.branch = (await promiseSpawn(`git`, ["-C", __appdir, "rev-parse", "--abbrev-ref", "HEAD"])).out.replace("\n","");
+        request.get(
+            "https://raw.githubusercontent.com/JakobST1n/Luxcena-Neo/" + this.branch + "/package.json",
+            (error, response, body) => {
+                if (!error && (response.statusCode === 200)) {
+                    this.remotePackageJSON = JSON.parse(body);
+                    this.remoteVersionNumber = this.remotePackageJSON["version"];
+                    if (this.localVersionNumber != this.remoteVersionNumber) {
+                        logger.notice("A new version is available on \"" + this.repoBranch + "\" (v" + this.version + ")");
+                        this.newVersion = true;
+
+                    } else {
+                        logger.info(`Running newest version (${this.newestVersion})`);
+                        this.newVersion = false;
+                    }
                 } else {
-                    logger.info(`Running newest version (${this.newestVersion})`);
+                    logger.notice("Could not find latest version! Please check you internet connection.");
+                    this.remotePackageJSON = null;
+                    this.remoteVersionNumber = "Unknown";
                     this.newVersion = false;
                 }
-            } else {
-                logger.notice("Could not find latest version! Please check you internet connection.");
             }
-        });
-    }
-
-    VersionIsNewerThan(check, current) {
-        let checkParts = check.split(".");
-        let currentParts = current.split(".");
-        let lCheckParts = checkParts.length;
-        let lCurrentParts = currentParts.length;
-
-        for (let i = 0; i < lCheckParts; i++) {
-            if (i >= lCurrentParts) { return true; }
-            if (Number (checkParts[i]) > Number (currentParts[i])) { return true; }
-            if (Number (checkParts[i]) < Number (currentParts[i])) { return false; }
-        }
-        return false;
+        );
     }
 
 }
  
 module.exports = (_neoModules) => {
     neoModules = _neoModules;
-    return new VersionChecker();
+    return new SelfUpdater();
 };
