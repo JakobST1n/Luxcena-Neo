@@ -69,7 +69,7 @@ class NeoRuntime:
         self.__module_th = exec_module(self.__module_loop)
 
         # This will run in this thread.
-        print("> Starting to listen on stdin")
+        print("> Starting IPC socket server")
         self.__s = None
         try:
             self.__bind_socket()
@@ -81,6 +81,7 @@ class NeoRuntime:
         finally:
             self.__close_socket()
 
+
     def __bind_socket(self):
         if path.exists(self.__socket_file):
             remove(self.__socket_file)
@@ -88,6 +89,7 @@ class NeoRuntime:
         self.__s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.__s.bind(self.__socket_file)
         self.__s.listen(1)
+
 
     def __socket_listener(self):
         self.__s_clients = []
@@ -118,7 +120,7 @@ class NeoRuntime:
                 last_send = time.perf_counter()
             
             if self.__send_strip_buffer:
-                time.sleep(0.001)
+                time.sleep(0.05)
                 buffer = [2]
                 for p in self.__strip.COLORSTATE:
                     buffer.append((p & 0x00FF0000) >> 16)
@@ -153,6 +155,7 @@ class NeoRuntime:
                         except Exception as e:
                             traceback.print_exc()
 
+
     def __close_socket(self):
         if (self.__s is None): return
         r, w, e = select.select([self.__s, *self.__s_clients], self.__s_clients, [], 0)
@@ -164,7 +167,6 @@ class NeoRuntime:
             self.__s_clients.remove(ws)
             ws.close()
         self.__s.close()
-
 
 
     def __execute_command(self, command):

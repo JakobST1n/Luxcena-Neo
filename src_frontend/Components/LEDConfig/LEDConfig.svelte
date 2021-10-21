@@ -40,7 +40,7 @@
         matrix = matrix; // This is needed because svelte is weird :)  
         saveConfig();
     }
-    function removeCell() {
+    function removeCell(ev) {
         matrix[ev.target.dataset.id].pop();
         matrix = matrix; // This is needed because svelte is weird :)
         saveConfig(); 

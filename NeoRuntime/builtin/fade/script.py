@@ -1,4 +1,5 @@
-from luxcena_neo import NeoBehaviour, IntegerVariable
+from luxcena_neo import NeoBehaviour, FloatVariable
+from time import perf_counter
 
 def wheel(pos):
     """Generate rainbow colors across 0-255 positions."""
@@ -14,15 +15,18 @@ def wheel(pos):
 class Main(NeoBehaviour):
 
     def declare_variables(self):
-        self.declare(IntegerVariable("speed", 2, min_val=1, max_val=50))
+        self.declare(FloatVariable("speed", 1, min_val=1, max_val=6, step=0.1))
 
     def on_start(self):
         """ Execute when mode is selected. """
         self.i = 0
+        self.last_inst = perf_counter()
 
     def each_tick(self):
-        self.i += self.var.speed
-        if self.i > 255: self.i = 0
-        for i in range(strip.num_pixels()):
-            strip.set_pixel_color(i, wheel(self.i))
-        strip.show()
+        if (perf_counter() - self.last_inst) > (6-self.var.speed):
+            self.i += 1
+            if self.i > 255: self.i = 0
+            for i in range(strip.num_pixels()):
+                strip.set_pixel_color(i, wheel(self.i))
+            strip.show()
+            self.last_inst = perf_counter()
