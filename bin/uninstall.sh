@@ -1,7 +1,7 @@
 #!/bin/bash
 
 printf "\e[37mLuxcena-\e[31mn\e[32me\e[34mo\e[0m\n"
-printf '\e[93m%s\e[0m' "-----------"
+printf '\e[93m%s\e[0m\n' "-----------"
 
 if [ "$EUID" -ne 0 ]; then
     echo "You need to run this script as root."
@@ -127,17 +127,15 @@ printf "By uninstalling Luxcena-Neo you might loose all data, including your scr
 
 dlgYN "Are you sure you want to uninstall?" res
 if [ $res -eq 1 ]; then
-    header "Remove systemd service"
+    header "Stop systemd service"
     execCommand "systemctl stop luxcena-neo"
 
     header "Delete lux-neo user"
     execCommand "deluser lux-neo"
 
     header "Uninstall luxcena-neo"
-    execCommand "rm -rf /opt/luxcena-neo"
     execCommand "rm -f /etc/systemd/system/luxcena-neo.service"
-    execCommand "rm -f /usr/bin/luxcena-neo.sh"
-    execCommand "rm -f /usr/bin/lux-neo"
+    execCommand "rm -rf /opt/luxcena-neo"
 
     TPUT setaf 2
     printf "\nEverything should now be gone.\n"
@@ -148,3 +146,4 @@ if [ $res -eq 1 ]; then
     printf " - packages (nodejs python3 python3-pip)\n"
     TPUT sgr0
 fi
+TPUT cnorm
