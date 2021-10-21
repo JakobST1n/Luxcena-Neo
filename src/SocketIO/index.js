@@ -310,6 +310,11 @@ function createAuthorizedNamespace(io) {
             logger.info("Stopped debugger");
         });
 
+        /* Matrix and strip buffer */
+        socket.on("matrix:get", () => {
+            socket.emit("matrix", neoModules.neoRuntimeManager.matrix);
+        });
+
         socket.on("disconnect", () => {
             logger.access(`SOCKET:authed Client (${socket.id}@${socket.handshake.headers.host}) disconnected.`);
             if (debuggerOpen) {
@@ -319,6 +324,12 @@ function createAuthorizedNamespace(io) {
         });
     });
 
+    neoModules.neoRuntimeManager.event.on("matrix", (matrix) => {
+        authorizedNamespace.emit("matrix", matrix);
+    });
+    neoModules.neoRuntimeManager.event.on("strip_buffer", (strip_buffer) => {
+        authorizedNamespace.emit("strip_buffer", strip_buffer);
+    });
     neoModules.selfUpdater.updater.event.on("step", (step) => {
         authorizedNamespace.emit("updater:step", step);
     });

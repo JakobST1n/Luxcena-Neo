@@ -13,6 +13,7 @@
     import ControlComponents from "../MainControls/ControlComponents.svelte";
     import Controls from "./Controls.svelte";
     import Output from "./Output.svelte";
+    import Simulation from "./Simulation.svelte";
     
     import { authorizedSocket, authorizedSocketNeeded } from "../../stores/socketStore";
     authorizedSocketNeeded.set(true);
@@ -276,12 +277,12 @@
 <main use:initDebugger>
     <div class="simulation">
         <Pane header="simulation">
+            <Simulation />
         </Pane>
     </div>
 
     <div class="controls">
         <Pane header="Controls">
-            <!-- <ControlComponents /> -->
             <Controls />
         </Pane>
     </div>

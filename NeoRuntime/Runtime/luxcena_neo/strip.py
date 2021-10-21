@@ -119,6 +119,7 @@ class Strip:
     def set_pixel_color(self, n, *color):
         """Set LED at position n to the provided 24-bit color value (in RGB order).
         """
+        if n >= self.LED_COUNT: return
         c = detect_format_convert_color(*color)
         self.TMPCOLORSTATE[n] = c
         self.strip.setPixelColor(n, c)
@@ -132,6 +133,7 @@ class Strip:
         """Set a whole segment to the provided red, green and blue color.
         Each color component should be a value from 0 to 255 (where 0 is the
         lowest intensity and 255 is the highest intensity)."""
+        if segment >= len(self.SEGMENTS): return
         for n in get_segment_range(self.SEGMENTS, segment):
             self.set_pixel_color(n, *color)
 

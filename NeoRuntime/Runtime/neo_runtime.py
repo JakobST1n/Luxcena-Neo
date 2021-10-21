@@ -116,11 +116,32 @@ class NeoRuntime:
                         ws.close()
 
                 last_send = time.perf_counter()
+            
+            if self.__send_strip_buffer:
+                time.sleep(0.001)
+                buffer = [2]
+                for p in self.__strip.COLORSTATE:
+                    buffer.append((p & 0x00FF0000) >> 16)
+                    buffer.append((p & 0x0000FF00) >> 8)
+                    buffer.append((p & 0x000000FF))
+                buffer = bytes(buffer)
+                for ws in w:
+                    try:
+                        ws.send(buffer)
+                    except BrokenPipeError:
+                        self.__s_clients.remove(ws)
+                        ws.close()
+                time.sleep(0.001)
 
             for rs in r:
                 if rs is self.__s:
                     c, a = self.__s.accept()
                     self.__s_clients.append(c)
+                    try:
+                        buf = bytes([3]) + bytes(json.dumps(self.__strip.pixelMatrix.matrix), "ascii")
+                        c.send(buf)
+                    except Exception as e:
+                        print(e)
                 else:
                     data = rs.recv(128)
                     if not data:

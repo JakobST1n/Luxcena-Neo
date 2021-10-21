@@ -29,8 +29,13 @@ const eventEmitter = new EventEmitter();
 let modeDebuggerActive = false;
 /** @type {string} Should be the modeId the debugger is attached to */
 let modeDebuggerId = null;
+/** @type {object} Handler for proc:start when debugger is active */
+let modeDebuggerProcStartHandler;
+/** @type {object} The last received matrix setup */
+let matrix = null;
 
 eventEmitter.on("proc:exit", (code) => modeExitCode = code);
+eventEmitter.on("matrix", (_matrix) => matrix = _matrix);
 
 /**
  * Check if a path id actually a mode (if it is a folder with a script.py file)
@@ -248,6 +253,13 @@ function startDebugger(debuggerModeId) {
     if (!isMode(getModePath(debuggerModeId))) { return {success: false, reason: "unknown modeId"}; }
     if (modeDebuggerActive) { return {success: false, reason: "debugger already active"}; }
     logger.info(`Starting debugger for ${debuggerModeId}`);
+
+    modeDebuggerProcStartHandler = eventEmitter.on("proc:start", () => {
+        setTimeout(() => {
+            ipc.sendCommand(IPC.COMMAND.SET_SEND_STRIP_BUF, true);
+        }, 500);
+    });
+
     modeDebuggerActive = true;
     modeDebuggerId = debuggerModeId;
     if (debuggerModeId != modeId) {
@@ -277,6 +289,8 @@ function stopDebugger() {
     if (!modeDebuggerActive) { return {success: true, detail: "No debugger active"} }
     logger.info(`Stopping debugger`);
     modeDebuggerActive = false;
+    eventEmitter.removeAllListeners("proc:start", modeDebuggerProcStartHandler);
+    ipc.sendCommand(IPC.COMMAND.SET_SEND_STRIP_BUF, false);
     return {success: true}
 }
 
@@ -306,6 +320,7 @@ module.exports = (_neoModules) => {
         isMode,
         modeRunning,
         startDebugger, stopDebugger, saveModeCode,
-        startMode, stopMode, restartMode
+        startMode, stopMode, restartMode,
+        matrix
     }
 };

@@ -19,7 +19,8 @@ const GLOBVAR = Object.freeze({POWER_ON  : 0,
                                BRIGHTNESS: 1});
 /** @type {Object} ENUM-ish for what type of data neoruntime sends */
 const DATATYPE = Object.freeze({STATES   : 1,
-                                STRIP_BUF: 2});
+                                STRIP_BUF: 2,
+                                MATRIX: 3});
 
 /**
  * class that will keep a active connection to a socket if possible, and
@@ -66,9 +67,9 @@ class IPC {
             this.connected = true;
         })
         .on('data', (data) => {
+            let json_data;
             switch (data[0]) {
                 case DATATYPE.STATES:
-                    let json_data;
                     try {
                         json_data = JSON.parse(data.toString("ascii", 1));
                     } catch (e) {
@@ -88,6 +89,20 @@ class IPC {
                         });
                         this.variables = json_data["variables"];
                     }
+                    break;
+
+                case DATATYPE.MATRIX:
+                    try {
+                        json_data = JSON.parse(data.toString("ascii", 1));
+                    } catch (e) {
+                        logger.warning("Could not parse json data from neoruntime");
+                        console.log(e);
+                    }
+                    this.eventEmitter.emit("matrix", json_data);
+                    break;
+                
+                case DATATYPE.STRIP_BUF:
+                    this.eventEmitter.emit("strip_buffer", Array.from(data.values()).slice(1));
                     break;
     
                 default:

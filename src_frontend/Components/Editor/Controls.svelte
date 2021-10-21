@@ -23,7 +23,6 @@
     openSocket.on("power", (power) => power_on = power);
     openSocket.on("brightness", (value) => brightnessValue = value);
     openSocket.on("vars", (vars) => variables = vars);
-    openSocket.on("vars", (vars) => console.log(vars));
     openSocket.on("var", (name, value) => {
         name = name.replace("variable/", "");
         if (value.value == null) {
@@ -32,7 +31,6 @@
             variables[name] = value;
         }
         variables = variables;
-        console.log(variables);
     });
 
     onMount(() => {
