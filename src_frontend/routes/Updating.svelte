@@ -1,11 +1,19 @@
 <script>
-	import { openSocket, authorizedSocket } from "../stores/socketStore";
+	import { openSocket, authorizedSocket, connected, reconnecting } from "../stores/socketStore";
 
     let hasError = false;
     let updateLog = "";
     let step = "";
     let command = "";
 
+
+    openSocket.io.on("reconnect", () => {
+        openSocketReconnecting.set(false);
+    });
+    openSocket.on("connect", () => {
+        console.log("END UPDATE");
+        window.location.href = "/";
+    });
     openSocket.on("updater", (event) => {
         if (event == "end") {
             if (!hasError) {

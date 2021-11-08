@@ -8,7 +8,7 @@
 	import WidgetRoute from "./routes/WidgetRoute.svelte";
 	import UnknownRoute from "./routes/UnknownRoute.svelte";
 
-	import { connected, reconnecting } from "./stores/socketStore.js";
+	import { connected, reconnecting, openSocket } from "./stores/socketStore.js";
 
 	let main_router_routes = new Map();
 	main_router_routes.set(/^\/(schedules|modes|led_config|logs|settings|)(?:\/.*)?$/, wrap({
@@ -29,6 +29,11 @@
 	main_router_routes.set("*", wrap({
 		component: UnknownRoute
 	}));
+
+	let updateInProgess = false;
+	openSocket.on("updater", (state) => {
+		if (state == "start") { updateInProgess = true; }
+	});
 </script>
 
 <style>
@@ -99,7 +104,7 @@
 
 </style>
 
-{#if $connected}
+{#if $updateInProgess || $connected}
 <Router routes={main_router_routes} />
 {:else if $reconnecting}
 <div class="no-connection">
