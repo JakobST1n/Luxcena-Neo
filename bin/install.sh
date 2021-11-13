@@ -151,7 +151,7 @@ if [ "$(uname -m)" = "armv6l" ]; then
 else
   execCommand "wget -qO- https://deb.nodesource.com/setup_14.x | bash -"
   execCommand "apt -q update"
-  execCommand "apit -qy install nodejs
+  execCommand "apt -qy install nodejs"
 fi
 execCommand "apt -qy install python3-pip"
 execCommand "pip3 install virtualenv"
