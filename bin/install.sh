@@ -143,11 +143,11 @@ execCommand "chown -R lux-neo:lux-neo /opt/luxcena-neo"
 # Install dependencies
 header "Install dependencies"
 if [ "$(uname -m)" = "armv6l" ]; then
-  wget https://unofficial-builds.nodejs.org/download/release/v14.10.0/node-v14.10.0-linux-armv6l.tar.gz
-  tar -xzf node-v14.10.0-linux-armv6l.tar.gz
-  sudo cp -r node-v14.10.0-linux-armv6l/* /usr/local
-  rm -r node-v14.10.0-linux-armv6l
-  rm node-v14.10.0-linux-armv6l.tar.gz
+  execCommand "wget https://unofficial-builds.nodejs.org/download/release/v14.10.0/node-v14.10.0-linux-armv6l.tar.gz"
+  execCommand "tar -xzf node-v14.10.0-linux-armv6l.tar.gz"
+  execCommand "sudo cp -r node-v14.10.0-linux-armv6l/* /usr/local"
+  execCommand "rm -r node-v14.10.0-linux-armv6l"
+  execCommand "rm node-v14.10.0-linux-armv6l.tar.gz"
 else
   execCommand "wget -qO- https://deb.nodesource.com/setup_14.x | bash -"
   execCommand "apt -q update"
