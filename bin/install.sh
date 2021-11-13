@@ -142,9 +142,18 @@ execCommand "chown -R lux-neo:lux-neo /opt/luxcena-neo"
 
 # Install dependencies
 header "Install dependencies"
-execCommand "wget -qO- https://deb.nodesource.com/setup_14.x | bash -"
-execCommand "apt -q update"
-execCommand "apt -qy install nodejs python3-pip"
+if [ "$(uname -m)" = "armv6l" ]; then
+  wget https://unofficial-builds.nodejs.org/download/release/v14.10.0/node-v14.10.0-linux-armv6l.tar.gz
+  tar -xzf node-v14.10.0-linux-armv6l.tar.gz
+  sudo cp -r node-v14.10.0-linux-armv6l/* /usr/local
+  rm -r node-v14.10.0-linux-armv6l
+  rm node-v14.10.0-linux-armv6l.tar.gz
+else
+  execCommand "wget -qO- https://deb.nodesource.com/setup_14.x | bash -"
+  execCommand "apt -q update"
+  execCommand "apit -qy install nodejs
+fi
+execCommand "apt -qy install python3-pip"
 execCommand "pip3 install virtualenv"
 execCommand "runuser -l 'lux-neo' -c \"export NODE_ENV=development; npm --prefix /opt/luxcena-neo install /opt/luxcena-neo\""
 
