@@ -209,10 +209,19 @@ class Updater {
     async installDependencies() {
         // So, the server is running as root, that means we can just do this.
         // we shouldn't, but, anyway.
-        await this.run("sh", ["-c", "wget -qO- https://deb.nodesource.com/setup_14.x | bash -"]);
-        await this.run("apt", ["-qy", "install", "nodejs", "python3-pip"]);
-        await this.run("pip3", ["install", "virtualenv"]);
-        await this.run("sh", ["-c", `export NODE_ENV=development; npm --prefix \"${__appdir}\" install \"${__appdir}\"`]);
+        let arch = (await this.run(`uname`, ["-m"])).out.replace("\n","");
+        if (arch == "armv6l") {
+            await this.run("wget", ["https://unofficial-builds.nodejs.org/download/release/v14.10.0/node-v14.10.0-linux-armv6l.tar.gz"]);
+            await this.run("tar", ["-xzf" "node-v14.10.0-linux-armv6l.tar.gz"]);
+            await this.run("cp", ["-r", "node-v14.10.0-linux-armv6l/*", "/usr/local"]);
+            await this.run("rm", ["-r", "node-v14.10.0-linux-armv6l"]);
+            await this.run("rm", ["node-v14.10.0-linux-armv6l.tar.gz"]);
+        } else {
+            await this.run("sh", ["-c", "wget -qO- https://deb.nodesource.com/setup_14.x | bash -"]);
+            await this.run("apt", ["-qy", "install", "nodejs", "python3-pip"]);
+            await this.run("pip3", ["install", "virtualenv"]);
+            await this.run("sh", ["-c", `export NODE_ENV=development; npm --prefix \"${__appdir}\" install \"${__appdir}\"`]);
+        }
     }
 
     async makeVirtualenv() {
