@@ -5,6 +5,7 @@
 
     let svg;
     let pixels = [];
+    let pixelBuffer = [];
 
     function updateMatrix(matrix) {
         if (matrix == null) { return; }
@@ -24,12 +25,26 @@
     }
 
     async function updateColors(colors) {
-        for (let i = 0; i+2 < colors.length; i+=3) {
-            try {
-            document.querySelector("#sim-pixel-"+(i/3)).style.setProperty("fill", `rgb(${colors[i]}, ${colors[i+1]}, ${colors[i+2]})`);
-            } catch(e) {}
-        }
+        pixelBuffer = colors;
     }
+
+    async function flushPixelBuffer() {
+        //console.log(pixelBuffer);
+        window.requestAnimationFrame((ts) => {
+            for (let i = 0; i+2 < pixelBuffer.length; i+=3) {
+                try {
+                    document.querySelector("#sim-pixel-"+(i/3))
+                            .style
+                            .setProperty(
+                                "fill",
+                                `rgb(${pixelBuffer[i]}, ${pixelBuffer[i+1]}, ${pixelBuffer[i+2]})`);
+                } catch(e) {
+                    console.log(e);
+                }
+            }
+        });
+    }
+    setInterval(flushPixelBuffer, 50);
 
     onMount(() => {
         authorizedSocket.on("matrix", updateMatrix);

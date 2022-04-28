@@ -57,8 +57,8 @@ function ensureStripConfig() {
     if (config.DEFAULT.led_dma == null) { config.DEFAULT.led_dma = 10; }
     if (config.DEFAULT.led_invert == null) { config.DEFAULT.led_invert = false; }
     if (config.DEFAULT.led_channel == null) { config.DEFAULT.led_channel = 0 }
-    if (config.DEFAULT.segments == null) { config.DEFAULT.segments = ""; }
-    if (config.DEFAULT.matrix == null) { config.DEFAULT.matrix = ""; }
+    if (config.DEFAULT.segments == null) { config.DEFAULT.segments = "50 50"; }
+    if (config.DEFAULT.matrix == null) { config.DEFAULT.matrix = "[[[0,false]],[[1,false]]]"; }
 
     fse.writeFileSync(__configdir + "/strip.ini", ini.encode(config))
 }

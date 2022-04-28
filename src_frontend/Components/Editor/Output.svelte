@@ -4,6 +4,7 @@
 
     let scrollBox;
     let htmlCode = "";
+    let buffer = "";
 
     function addData(data, classname) {
         // let styles = "white-space:pre-wrap;margin:0;";
@@ -17,11 +18,17 @@
                 styles += "color: red";
                 break;
         }
-        htmlCode += `<span style="${styles}">${data}</span>`;
+        buffer += `<span style="${styles}">${data}</span>`;
         if (scrollBox != null) {
             scrollBox.scrollTop = scrollBox.scrollHeight + 100;
         }
     }
+
+    function flushBuffer() {
+        htmlCode += buffer;
+        buffer = "";
+    };
+    setInterval(flushBuffer, 400);
     
     authorizedSocket.on("editor:proc:start", () => htmlCode = "");
     authorizedSocket.on("editor:proc:exit", (code) => addData(`\nMode exited with ${code}\n\n`, "exit"));

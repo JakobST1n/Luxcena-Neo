@@ -30,10 +30,10 @@
 		component: UnknownRoute
 	}));
 
-	let updateInProgess = false;
-	openSocket.on("updater", (state) => {
-		if (state == "start") { updateInProgess = true; }
-	});
+	//let updateInProgess = false;
+	//openSocket.on("updater", (state) => {
+	//	if (state == "start") { updateInProgess = true; }
+	//});
 </script>
 
 <style>
@@ -104,7 +104,7 @@
 
 </style>
 
-{#if $updateInProgess || $connected}
+{#if $connected}
 <Router routes={main_router_routes} />
 {:else if $reconnecting}
 <div class="no-connection">

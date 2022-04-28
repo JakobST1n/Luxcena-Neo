@@ -39,9 +39,9 @@ eventEmitter.on("matrix", (_matrix) => matrix = _matrix);
 
 /**
  * Check if a path id actually a mode (if it is a folder with a script.py file)
- * 
+ *
  * @param {string} path - Path to check.
- * 
+ *
  * @return {boolean} wether the path points to a valid mode.
  */
 function isMode(path) {
@@ -54,7 +54,7 @@ function isMode(path) {
 
 /**
  * Get all ids of modes that can be set.
- * 
+ *
  * @returns {array} All modeids
  */
 function listModes() {
@@ -77,9 +77,9 @@ function listModes() {
 
 /**
  * Change mode, stop the old one and start the new one.
- * 
+ *
  * @param {string} _modeId - Id of the mode to change to.
- * 
+ *
  * @return {object} A standardform return object.
  */
 function setMode(_modeId) {
@@ -93,7 +93,7 @@ function setMode(_modeId) {
     logger.info(`Changing mode to "${_modeId}".`);
 
     stopMode();
-    
+
     modeId = _modeId;
     neoModules.userData.config.activeMode = modeId;
     eventEmitter.emit("change", "mode", modeId);
@@ -106,7 +106,7 @@ function setMode(_modeId) {
 
 /**
  * Get current mode
- * 
+ *
  * @return {string} current modeId
  */
 function currentMode() {
@@ -115,7 +115,7 @@ function currentMode() {
 
 /**
  * Will attempt to stop current mode
- * 
+ *
  * @return {object} A standardform return object.
  */
 function stopMode(restart=false) {
@@ -127,18 +127,17 @@ function stopMode(restart=false) {
 
 /**
  * Will attempt to start current mode
- * 
+ *
  * @return {object} A standardform return object.
  */
 function startMode() {
     if (runtimeProcess === null) { return {success: false, reason: "no runtimeprocess", detail: "Runtimeprocess not set, did you mean to call setMode?"}; }
-    runtimeProcess.start();
-    return {success: true}
+    return runtimeProcess.start();
 };
 
 /**
  * Will attempt to restart current mode
- * 
+ *
  * @return {object} A standardform return object.
  */
 function restartMode() {
@@ -147,7 +146,7 @@ function restartMode() {
 
 /**
  * Checks if mode is running currently
- * 
+ *
  * @return {boolean} if mode is running
  */
 function modeRunning() {
@@ -157,9 +156,9 @@ function modeRunning() {
 
 /**
  * Get the full system path to a mode
- * 
+ *
  * @param {string} modeId
- * 
+ *
  * @return {string} Full path of mode
  */
 function getModePath(modeId) {
@@ -172,24 +171,9 @@ function getModePath(modeId) {
 }
 
 /**
- * This should be called by RuntimeProcess when a variable changes in the mode
- *
- * @param {string} location - This is globvars/variables
- * @param {string} name - Name of the variable
- * @param {any} newValue - The new value of the variable
- */
-function onVariableChange(location, name, newValue) {
-    if (location == "variables") {
-        eventEmitter.emit("change", `variable/${name}`, newValue)
-    } else if (location == "globvars") {
-        eventEmitter.emit("change", `${name}`, newValue)
-    }
-}
-
-/**
  * Function that returns all globvars (brightness, power_on) as the values they
  * had last time we heard from the python script.
- * 
+ *
  * @return {object}
  */
 function getGlobvars() {
@@ -199,15 +183,15 @@ function getGlobvars() {
 
 /**
  * Sets value of a globvar power_on/brightness.
- * 
+ *
  * @param {string} name - Name of the variable power_on/brightness
  * @param {any} value - The value the variable should be set to
- * 
+ *
  * @return {object} Standardform return object
  */
 function setGlobvar(name, value) {
     if (!modeRunning()) { return; }
-    
+
     switch(name) {
         case "power_on":
             return ipc.sendCommand(IPC.COMMAND.SET_GLOB, IPC.GLOBVAR.POWER_ON, (value) ? 1 : 0);
@@ -220,7 +204,7 @@ function setGlobvar(name, value) {
 
 /**
  * Get all variables declared in mode
- * 
+ *
  * @return {object}
  */
 function getVariables() {
@@ -230,10 +214,10 @@ function getVariables() {
 
 /**
  * Sets value of a variable
- * 
+ *
  * @param {string} name - Name of the variable
  * @param {any} value - The value the variable should be set to
- * 
+ *
  * @return {object} Standardform return object
  */
 function setVariable(name, value) {
@@ -243,9 +227,9 @@ function setVariable(name, value) {
 
 /**
  * Start debugger for a mode
- * 
+ *
  * @param {string} modeId - The mode to debug
- * 
+ *
  * @return {object} Standardform return object
  */
 function startDebugger(debuggerModeId) {
@@ -258,17 +242,17 @@ function startDebugger(debuggerModeId) {
         modeDebuggerProcStartHandler = eventEmitter.on("proc:start", () => {
             setTimeout(() => {
                 ipc.sendCommand(IPC.COMMAND.SET_SEND_STRIP_BUF, true);
-            }, 500);
+            }, 2000);
         });
+    } else {
+        console.log(modeDebuggerProcStartHandler);
     }
 
     modeDebuggerActive = true;
     modeDebuggerId = debuggerModeId;
-    if (debuggerModeId != modeId) {
+    setTimeout(() => {
         setMode(debuggerModeId);
-    } else {
-        restartMode();
-    }
+    }, 300);
     return {success: true, code: fs.readFileSync(getModePath(debuggerModeId) + "/script.py").toString()}
 }
 
@@ -284,7 +268,7 @@ function saveModeCode(_modeId, code) {
 
 /**
  * Stop the active debugger
- * 
+ *
  * @return {object} Standardform return object
  */
 function stopDebugger() {

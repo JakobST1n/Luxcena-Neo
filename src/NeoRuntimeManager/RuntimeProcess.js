@@ -23,12 +23,12 @@ class RuntimeProcess {
     start() {
         if (this.isRunning) {
             console.log("PROCESS ALREADY RUNNING");
-            return;
+            return {success: false, reason: "already running"};
         }
         this.isRunning = true;
         this.proc = spawn.spawn(
-            `${__appdir}/NeoRuntime/Runtime/venv/bin/python`,
-            //"python",
+            // `${__appdir}/NeoRuntime/Runtime/venv/bin/python`,
+            "python3",
             [
                 "-u", // This makes us able to get real-time output
                 `${__appdir}/NeoRuntime/Runtime/neo_runtime.py`,
@@ -75,6 +75,7 @@ class RuntimeProcess {
             this.exitCode = code;
         });
 
+        return {success: true};
     }
 
     stop(restart=false) {
@@ -85,8 +86,10 @@ class RuntimeProcess {
                 });
             }
             this.proc.kill("SIGINT");
+            return {success: true}
         } catch (err) {
             console.log(err);
+            return {success:false, reason:err}
         }
     }
 }

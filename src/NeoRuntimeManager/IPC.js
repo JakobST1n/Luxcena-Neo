@@ -61,7 +61,7 @@ class IPC {
         .on('connect', () => {
             clearInterval(this.reconnectInterval);
             this.reconnectInterval = false;
-            // logger.info("IPC Connected.");
+            logger.info("IPC Connected.");
         })
         .on("ready", () => {
             this.connected = true;
@@ -100,30 +100,30 @@ class IPC {
                     }
                     this.eventEmitter.emit("matrix", json_data);
                     break;
-                
+
                 case DATATYPE.STRIP_BUF:
                     this.eventEmitter.emit("strip_buffer", Array.from(data.values()).slice(1));
                     break;
-    
+
                 default:
                     logger.info(data);
             }
-    
+
         })
         .on("timeout", () => {
             logger.info("IPC Timeout");
         })
         .on("close", (hadError) => {
-            // logger.info("IPC Close, hadError: ", hadError);
+             logger.info("IPC Close, hadError: ", hadError);
             this.connected = false;
             this.reconnect();
         })
         .on("end", () => {
-            // logger.info("IPC End");
+             logger.info("IPC End");
             this.connected = false;
         })
         .on('error', (data) => {
-            // logger.info('IPC Server not active.');
+             logger.info('IPC Server not active.');
             this.connected = false;
             this.reconnect();
         })
@@ -137,7 +137,7 @@ class IPC {
     sendCommand(commandType, name, value) {
         if (this.connected) {
             let buf;
-    
+
             switch (commandType) {
                 case (COMMAND.SET_GLOB):
                     buf = Buffer.allocUnsafe(3);

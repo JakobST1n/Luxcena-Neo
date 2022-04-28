@@ -3,6 +3,7 @@
 </script>
 <script>
     import { onDestroy } from "svelte";
+    import { get } from "svelte/store";
 	import { pop } from "svelte-spa-router";
     import { EditorState, basicSetup } from "@codemirror/basic-setup"
     import { EditorView, keymap } from "@codemirror/view"
@@ -17,7 +18,7 @@
     import Output from "./Output.svelte";
     import Simulation from "./Simulation.svelte";
     
-    import { authorizedSocket, authorizedSocketNeeded } from "../../stores/socketStore";
+    import { authorizedSocket, authorizedSocketNeeded, openSocketConnected } from "../../stores/socketStore";
     authorizedSocketNeeded.set(true);
 
 	export let modeId;
@@ -26,16 +27,50 @@
     let codeEditorEl;
     let codeEditorHasChanges = false;
     let procIsRunning = false;
+    let failCount = 0;
+    let reconnecting = false;
 
     function initDebugger() {
         if (debuggerInitialised) { return; }
         debuggerInitialised = true;
+        console.log("emitting editor:open");
         authorizedSocket.emit("editor:open", `user/${modeId}`, (res) => {
-            if (!res.success) { notif({title: res.reason, type: "danger"}); return; }
+            handleError(res);
         });
     }
 
+    function notifErr(err) {
+        if (err.hasOwnProperty("detail")) {
+            notif({title: err.reason, type: "danger"});
+        } else {
+            notif({title: err.reason, text: err.detail, type: "danger"});
+        }
+    }
+
+    function handleError(err) {
+        console.log(err);
+        if (err.success) { return; }
+        failCount++;
+        if (failCount < 10) {
+            if (err.reason == "debugger not open") {
+                if (!reconnecting) {
+                    reconnecting = true;
+                    console.log("emitting editor:open");
+                    authorizedSocket.emit("editor:open", `user/${modeId}`, (res) => {
+                        reconnecting = false;
+                        handleError(res);
+                    });
+                }
+            } else {
+                notifErr(err);
+            }
+        } else {
+            notifErr(err);
+        }
+    }
+
     authorizedSocket.on("editor:code", (modeId, code) => {
+        console.log("received editor:code");
         const chalky = "#e5c07b",
               coral = "#e06c75",
               cyan = "#56b6c2",
@@ -165,38 +200,47 @@
             parent: codeEditorEl
         })
     });
-    authorizedSocket.on("editor:proc:start", () => procIsRunning = true);
-    authorizedSocket.on("editor:proc:exit", (code) => {
+    authorizedSocket.on("receivededitor:proc:start", () => {
+        console.log("received editor:proc:start");
+        procIsRunning = true
+    });
+    authorizedSocket.on("received editor:proc:exit", (code) => {
+        console.log("received editor:proc:exit");
         procIsRunning = false;
     });
 
     function startProc() {
-        saveCode(() => {
+        saveCode((res) => {
+            handleError(res);
+            console.log("emitting editor:startmode");
             authorizedSocket.emit("editor:startmode", (res) => {
-                if (!res.success) { notif({title: res.reason, type: "danger"}); }
+                handleError(res);
             });
         });
     }
 
     function stopProc() {
+        console.log("emitting editor:stopmode");
         authorizedSocket.emit("editor:stopmode", (res) => {
-            if (!res.success) { notif({title: res.reason, type: "danger"}); }
+            handleError(res);
         });
     }
 
     function restartProc () {
         saveCode((res) => {
-            if (!res.success) { notif({title: res.reason, type: "danger"}); }
+            handleError(res);
+            console.log("emitting editor:restartmode");
             authorizedSocket.emit("editor:restartmode", (res) => {
-                if (!res.success) { notif({title: res.reason, type: "danger"}); }
+                handleError(res);
             }); 
         });
     }
 
     function saveCode(fn) {
         if (codeEditorView == null) { return; }
+        console.log("emitting editor:save");
         authorizedSocket.emit("editor:save", `user/${modeId}`, codeEditorView.state.doc.toString(), res => {
-            if (!res.success) { notif({title: res.reason, type: "danger"}); }
+            handleError(res);
             if (fn != null) { fn(res) }
         });
         codeEditorHasChanges = false;
@@ -204,16 +248,21 @@
 
     function closeDebugger() {
         saveCode((res) => {
-            if (!res.success) { notif({title: res.reason, type: "danger"}); }
+            handleError(res);
+            console.log("emitting editor:close");
             authorizedSocket.emit("editor:close", res => {
-                if (!res.success) { notif({title: res.reason, type: "danger"}); }
+                handleError(res);
                 debuggerInitialised = false;
             });
         });
     }
 
     onDestroy(() => {
-        closeDebugger();
+        if (get(openSocketConnected)) {
+            closeDebugger();
+        } else {
+            debuggerInitialised = false;
+        }
     })
     
     document.addEventListener("keydown", function(e) {

@@ -119,7 +119,7 @@ class NeoRuntime:
                         ws.close()
 
                 last_send = time.perf_counter()
-            
+
             if self.__send_strip_buffer:
                 time.sleep(0.05)
                 buffer = [2]

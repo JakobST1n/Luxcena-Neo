@@ -16,7 +16,7 @@ class Strip:
         self.LED_PIN     = int(strip_conf["led_pin"])      # 18 uses PWM, 10 uses SPI /dev/spidev0.0
         self.LED_DMA     = int(strip_conf["led_dma"])      # DMA channel for generating the signal, on the newer ones, try 10
         self.LED_COUNT   = sum(self.SEGMENTS)              # Number of LEDs in strip
-        
+
         # Setup the color calibration array
         if ("color_calibration" in strip_conf) and (strip_conf["color_calibration"] != ""):
             self.COLOR_CALIBRATION = strip_conf["led_calibration"]
@@ -34,7 +34,7 @@ class Strip:
         self.__set_brightness = 255
         # Keeping what the brightness actually is
         self.__actual_brightness = self.__set_brightness
-        
+
         # Setup the strip instance
         self.strip = ws.Adafruit_NeoPixel(
             self.LED_COUNT,
@@ -50,7 +50,7 @@ class Strip:
 
         # Blank out all the LEDs
         self.blank()
-        
+
         # Setup matrix
         print("  * Generating matrix")
         # try:
@@ -58,7 +58,7 @@ class Strip:
         self.pixelMatrix.dump()
         # except:
         #    print("Something went wrong while setting up your self-defined matrix.")
-        
+
         # Read in state file, so we can revoces the last state.
         self.__globvars_path = path.join(path.split(path.dirname(path.abspath(__file__)))[0], "state.json")
         if path.exists(self.__globvars_path):
@@ -100,7 +100,7 @@ class Strip:
             self.save_globvars()
         else:
             raise Exception("Value ({}) outside allowed range (0-255)".format(value))
-    
+
     def _set_brightness(self, value):
         self.__actual_brightness = value
         self.strip.setBrightness(value)
@@ -145,7 +145,7 @@ class Strip:
     def get_pixel_color(self, n):
         """Get the 24-bit RGB color value for the LED at position n."""
         return self.strip.getPixelColor(n)
-    
+
     def blank(self):
         """Will turn off all pixels, this also calls show for you."""
         for n in range(self.LED_COUNT):

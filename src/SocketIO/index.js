@@ -12,6 +12,7 @@ let logger = require(__appdir + "/src/Logger");
 var exec = require('child_process').exec;
 var CryptoJS = require("crypto-js");
 let fs = require("fs");
+const { performance } = require("perf_hooks");
 
 let neoModules;
 
@@ -82,7 +83,7 @@ function createOpenSocketNamespace(io) {
                 }
                 
                 session_tokens[token] = {
-                    expire: (~~Date.now())+(86400),
+                    expire: (~~Date.now())+(2678400),
                     host: socket.handshake.headers.host,
                     user: {username: user.username}
                 };
@@ -139,7 +140,7 @@ function authorize_middleware(socket, next) {
     const token = socket.handshake.auth.token;
 
     if (session_tokens.hasOwnProperty(token) &&
-        session_tokens[token].host === socket.handshake.headers.host &&
+        // session_tokens[token].host === socket.handshake.headers.host &&
         session_tokens[token].expire > (~~(Date.now()))) {
             socket.data.user = session_tokens[token].user;
             next();
@@ -266,8 +267,8 @@ function createAuthorizedNamespace(io) {
         /* Editor/debugger */
         let onProcStart = () => socket.emit("editor:proc:start");
         let onProcStop = (code) => socket.emit("editor:proc:exit", code);
-        let onProcStdout = (stdout) => socket.emit("editor:proc:stdout", stdout);
-        let onProcStderr = (stderr) => socket.emit("editor:proc:stderr", stderr);
+        let onProcStdout = (stdout) => socket.volatile.emit("editor:proc:stdout", stdout);
+        let onProcStderr = (stderr) => socket.volatile.emit("editor:proc:stderr", stderr);
         let closeDebugger = () => {
             debuggerOpen = false;
             neoModules.neoRuntimeManager.event.removeListener("proc:start", onProcStart);
@@ -277,6 +278,10 @@ function createAuthorizedNamespace(io) {
             return neoModules.neoRuntimeManager.stopDebugger();
         };
         socket.on("editor:open", (modeId, fn) => {
+            neoModules.neoRuntimeManager.event.on("proc:start", onProcStart);
+            neoModules.neoRuntimeManager.event.on("proc:exit", onProcStop);
+            neoModules.neoRuntimeManager.event.on("proc:stdout", onProcStdout);
+            neoModules.neoRuntimeManager.event.on("proc:stderr", onProcStderr);
             let res = neoModules.neoRuntimeManager.startDebugger(modeId);
             if (!res.success) { fn(res); return; }
             logger.info(`Starting debugger for ${modeId}.`)
@@ -284,20 +289,21 @@ function createAuthorizedNamespace(io) {
             fn({success: true})
             socket.emit("editor:code", modeId, res.code);
 
-            neoModules.neoRuntimeManager.event.on("proc:start", onProcStart);
-            neoModules.neoRuntimeManager.event.on("proc:exit", onProcStop);
-            neoModules.neoRuntimeManager.event.on("proc:stdout", onProcStdout);
-            neoModules.neoRuntimeManager.event.on("proc:stderr", onProcStderr);
             if (neoModules.neoRuntimeManager.modeRunning()) {
                 socket.emit("editor:proc:start");
             }
         });
         socket.on("editor:save", (modeId, code, fn) => {
-            if (!debuggerOpen) { fn({success: false, reason: "Debugger not open"}); return;  };
+            if (!debuggerOpen) { fn({success: false, reason: "debugger not open"}); return;  };
             fn(neoModules.neoRuntimeManager.saveModeCode(modeId, code));
         });
         socket.on("editor:startmode", (fn) => {
-           fn(neoModules.neoRuntimeManager.startMode());
+            if (neoModules.neoRuntimeManager.modeRunning()) {
+                fn({success: true});
+                socket.emit("editor:proc:start");
+            } else {
+                fn(neoModules.neoRuntimeManager.startMode());
+            }
         });
         socket.on("editor:stopmode", (fn) => {
             fn(neoModules.neoRuntimeManager.stopMode());
@@ -327,8 +333,12 @@ function createAuthorizedNamespace(io) {
     neoModules.neoRuntimeManager.event.on("matrix", (matrix) => {
         authorizedNamespace.emit("matrix", matrix);
     });
+    let lastStripBufferEmit = performance.now();
     neoModules.neoRuntimeManager.event.on("strip_buffer", (strip_buffer) => {
-        authorizedNamespace.emit("strip_buffer", strip_buffer);
+        if ((performance.now() - lastStripBufferEmit) > 50) {
+            authorizedNamespace.volatile.emit("strip_buffer", strip_buffer);
+            lastStripBufferEmit = performance.now();
+        }  // We just drop packets 
     });
     neoModules.selfUpdater.updater.event.on("step", (step) => {
         authorizedNamespace.emit("updater:step", step);
@@ -339,6 +349,16 @@ function createAuthorizedNamespace(io) {
     neoModules.selfUpdater.updater.event.on("error", (updateLog) => {
         authorizedNamespace.emit("updater:error", updateLog);
     });
+}
+
+/**
+ * Protect 
+ */
+function limitEmits(fn) {
+    let lastEmit = performance.now();
+    
+    return {
+    }
 }
 
 /**
