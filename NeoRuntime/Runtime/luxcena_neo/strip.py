@@ -137,6 +137,13 @@ class Strip:
         self.TMPCOLORSTATE[n] = c
         self.strip.setPixelColor(n, c)
 
+        # self.strip.setPixelColor(n,
+        #     (0 << 24)
+        #     | (int(((c & 0x00FF0000) >> 16) * ((self.COLOR_CALIBRATION[n] & 0x00FF0000) >> 16)) << 16)
+        #     | (int(((c & 0x0000FF00) >>  8) * ((self.COLOR_CALIBRATION[n] & 0x0000FF00) >>  8)) <<  8)
+        #     | (int(((c & 0x000000FF)      ) *  (self.COLOR_CALIBRATION[n] & 0x000000FF)       )      )
+        # )
+
     def set_pixel_color_XY(self, x, y, *color):
         """Set LED at position n to the provided 24-bit color value (in RGB order).
         """

@@ -60,10 +60,7 @@ def theaterChaseRainbow(wait_ms=50):
 class Main(NeoBehaviour):
 
     def on_start(self):
-        colorWipe(*(255, 0, 0))  # Red wipe
-        colorWipe(*(0, 255, 0))  # Blue wipe
-        colorWipe(*(0, 0, 255))  # Green wipe
-
+        # Do an endless loop with some default ixel test patterns
         while True:
             theaterChase(*(127, 127, 127))  # White theater chase
             theaterChase(*(127,   0,   0))  # Red theater chase
