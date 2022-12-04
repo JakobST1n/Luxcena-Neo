@@ -57,7 +57,6 @@
                         `rgb(${pixelBuffer[i]}, ${pixelBuffer[i+1]}, ${pixelBuffer[i+2]})`
                     );
                 } catch(e) {
-                    console.log(pixel);
                     console.log(e);
                 }
             }

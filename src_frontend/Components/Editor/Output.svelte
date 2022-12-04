@@ -1,12 +1,13 @@
 <script>
-    import { onMount, onDestroy } from "svelte";
+    import { onMount, onDestroy, afterUpdate } from "svelte";
     import { authorizedSocket, authorizedSocketNeeded } from "../../stores/socketStore";
     authorizedSocketNeeded.set(true);
 
     let scrollBox;
     let htmlCode = "";
-    let buffer = "";
+    let buffer = [];
     let flushBufferInterval;
+    let lagAmount = 0;
 
     function addData(data, classname) {
         // let styles = "white-space:pre-wrap;margin:0;";
@@ -20,16 +21,19 @@
                 styles += "color: red";
                 break;
         }
-        buffer += `<span style="${styles}">${data}</span>`;
-        if (scrollBox != null) {
-            scrollBox.scrollTop = scrollBox.scrollHeight + 100;
-        }
+        buffer.push(`<span style="${styles}">${data}</span>`);
     }
 
-    function flushBuffer() {
-        htmlCode += buffer;
-        buffer = "";
+    function flushBufferPart() {
+        if (buffer.length > 0) {
+            htmlCode += buffer.shift();
+        }
+        lagAmount = buffer.length;
     };
+
+    afterUpdate(() => {
+	    scrollBox.scrollTo(0, scrollBox.scrollHeight);
+    });
     
     authorizedSocket.on("editor:proc:start", () => htmlCode = "");
     authorizedSocket.on("editor:proc:exit", (code) => addData(`\nMode exited with ${code}\n\n`, "exit"));
@@ -38,8 +42,8 @@
 
     onMount(() => {
         htmlCode = "";
-        buffer = "";
-        flushBuffer = setInterval(flushBuffer, 400);
+        buffer = [];
+        flushBufferInterval = setInterval(flushBufferPart, 50);
     });
 
     onDestroy(() => {
@@ -51,6 +55,8 @@
     div {
         height: 100%;
         width: 100%;
+        box-sizing: border-box;
+        display: grid;
     }
     pre {
         height: 100%;
@@ -60,14 +66,28 @@
         margin: 0;
         box-sizing: border-box;
     }
+    .lag-alert {
+        display: block;
+        box-sizing: border-box;
+        padding: 5px;
+        width: calc(100vw - 30px);
+        font-size: 12px;
+        background-color: var(--red-700);
+        height: fit-content;
+    }
     @media (min-width: 800px) {
-        pre {
-            width: calc(100vw - 360px);
+        pre, .lag-alert {
+            width: calc(100vw - 345px);
         }
     }
 </style>
 
 <div>
+    {#if lagAmount > 3}
+        <span class="lag-alert">
+            Output cannot keep up, and is {lagAmount} chunks behind realtime.
+        </span>
+    {/if}
     <pre bind:this={scrollBox}>
         {@html htmlCode}
     </pre>

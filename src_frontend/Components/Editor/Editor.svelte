@@ -49,7 +49,6 @@
     }
 
     function handleError(err) {
-        console.log(err);
         if (err.success) { return; }
         failCount++;
         if (failCount < 10) {
