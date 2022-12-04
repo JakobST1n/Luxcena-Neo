@@ -2,7 +2,7 @@
     let debuggerInitialised = false;
 </script>
 <script>
-    import { onDestroy } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { get } from "svelte/store";
 	import { pop } from "svelte-spa-router";
     import { EditorState, basicSetup } from "@codemirror/basic-setup"
@@ -12,6 +12,7 @@
     import { python } from "@codemirror/lang-python"
     import { HighlightStyle, tags as t } from "@codemirror/highlight"
     import { notif } from "../../stores/notifs";
+    import EditorActionButton from "../../ComponentLib/Button/EditorActionButton.svelte";
     import TopBar from "./TopBar.svelte";
     import Pane from "./Pane.svelte";
     import Controls from "./Controls.svelte";
@@ -200,11 +201,11 @@
             parent: codeEditorEl
         })
     });
-    authorizedSocket.on("receivededitor:proc:start", () => {
+    authorizedSocket.on("editor:proc:start", () => {
         console.log("received editor:proc:start");
         procIsRunning = true
     });
-    authorizedSocket.on("received editor:proc:exit", (code) => {
+    authorizedSocket.on("editor:proc:exit", (code) => {
         console.log("received editor:proc:exit");
         procIsRunning = false;
     });
@@ -236,6 +237,18 @@
         });
     }
 
+    let simulationEnabled;
+    let simulationToggleFn;
+    let simulationBackgrounds = ["--default-bg", "black", "white"];
+    let simlulationBackgroundI = 0;
+    function toggleSimulationPower() { simulationToggleFn(); }
+    function nextSimulationBackground() {
+        simlulationBackgroundI++;
+        if (simlulationBackgroundI >= simulationBackgrounds.length) {
+            simlulationBackgroundI = 0;
+        }
+    }
+
     function saveCode(fn) {
         if (codeEditorView == null) { return; }
         console.log("emitting editor:save");
@@ -256,6 +269,14 @@
             });
         });
     }
+
+    onMount(() => {
+        codeEditorHasChanges = false;
+        procIsRunning = false;
+        failCount = 0;
+        reconnecting = false;
+        initDebugger();
+    });
 
     onDestroy(() => {
         if (get(openSocketConnected)) {
@@ -327,10 +348,19 @@
         on:stop={stopProc}
         on:restart={restartProc}
         bind:procIsRunning={procIsRunning} />
-<main use:initDebugger>
+<main>
     <div class="simulation">
-        <Pane header="simulation">
-            <Simulation />
+        <Pane header="simulation" contentBackground={simulationBackgrounds[simlulationBackgroundI]}>
+            <svelte:fragment slot="actions">
+                <EditorActionButton faIcon="fas fa-tint"
+                        on:click={nextSimulationBackground}
+                        alt="Toggle simulation"></EditorActionButton>
+                <EditorActionButton faIcon="fas fa-power-off"
+                        on:click={toggleSimulationPower}
+                        color={simulationEnabled ? "green" : "red"}
+                        alt="Toggle simulation"></EditorActionButton>
+            </svelte:fragment>
+            <Simulation bind:toggleEnable={simulationToggleFn} bind:enabled={simulationEnabled} />
         </Pane>
     </div>
 

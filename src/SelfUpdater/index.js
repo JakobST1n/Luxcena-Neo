@@ -212,7 +212,7 @@ class Updater {
         let arch = (await this.run(`uname`, ["-m"])).out.replace("\n","");
         if (arch == "armv6l") {
             await this.run("wget", ["https://unofficial-builds.nodejs.org/download/release/v14.10.0/node-v14.10.0-linux-armv6l.tar.gz"]);
-            await this.run("tar", ["-xzf" "node-v14.10.0-linux-armv6l.tar.gz"]);
+            await this.run("tar", ["-xzf", "node-v14.10.0-linux-armv6l.tar.gz"]);
             await this.run("cp", ["-r", "node-v14.10.0-linux-armv6l/*", "/usr/local"]);
             await this.run("rm", ["-r", "node-v14.10.0-linux-armv6l"]);
             await this.run("rm", ["node-v14.10.0-linux-armv6l.tar.gz"]);

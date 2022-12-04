@@ -34,6 +34,10 @@
     });
 
     onMount(() => {
+        power_on = false;
+        brightnessValue = 0;
+        variables = {};
+
         openSocket.emit("power:get");
         openSocket.emit("brightness:get");
         openSocket.emit("vars:get")

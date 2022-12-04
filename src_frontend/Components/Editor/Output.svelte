@@ -1,10 +1,12 @@
 <script>
+    import { onMount, onDestroy } from "svelte";
     import { authorizedSocket, authorizedSocketNeeded } from "../../stores/socketStore";
     authorizedSocketNeeded.set(true);
 
     let scrollBox;
     let htmlCode = "";
     let buffer = "";
+    let flushBufferInterval;
 
     function addData(data, classname) {
         // let styles = "white-space:pre-wrap;margin:0;";
@@ -28,12 +30,21 @@
         htmlCode += buffer;
         buffer = "";
     };
-    setInterval(flushBuffer, 400);
     
     authorizedSocket.on("editor:proc:start", () => htmlCode = "");
     authorizedSocket.on("editor:proc:exit", (code) => addData(`\nMode exited with ${code}\n\n`, "exit"));
     authorizedSocket.on("editor:proc:stdout", (stdout) => addData(stdout, "stdout"));
     authorizedSocket.on("editor:proc:stderr", (stderr) => addData(stderr, "stderr"));
+
+    onMount(() => {
+        htmlCode = "";
+        buffer = "";
+        flushBuffer = setInterval(flushBuffer, 400);
+    });
+
+    onDestroy(() => {
+        clearInterval(flushBufferInterval);
+    });
 </script>
 
 <style>

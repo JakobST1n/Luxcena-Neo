@@ -1,8 +1,26 @@
 import json
 from os import path
-import rpi_ws281x as ws
 from .matrix import Matrix, get_segment_range
 from .power_calc import calcCurrent
+
+""" import rpi_ws281x library, or import dummy version. """
+try:
+    import rpi_ws281x as ws
+except ModuleNotFoundError:
+    """ Dummy STRIP used for debugging purposes """
+    class STRIP:
+        def __init__(self, *args, **kwargs): pass
+        def begin(self, *args): pass
+        def blank(self): pass
+        def show(self): pass
+        def setPixelColor(self, *args): pass
+        def setBrightness(self, *args): pass
+    """ Dummy ws implementation """
+    class WS:
+        WS2812_STRIP = 1
+        Adafruit_NeoPixel = STRIP
+        def __init__(*args): print("rpi_ws281x is not installed, using a dummy module")
+    ws = WS()
 
 
 class Strip:

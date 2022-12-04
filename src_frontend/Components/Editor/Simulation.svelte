@@ -1,11 +1,24 @@
 <script>
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { authorizedSocket, authorizedSocketNeeded } from "../../stores/socketStore";
     authorizedSocketNeeded.set(true);
 
+    export let enabled = true;
+
+    let target_fps = 60;
     let svg;
     let pixels = [];
     let pixelBuffer = [];
+    let pixelBufferCh = false;
+    let pixelFlushInterval;
+
+    export function toggleEnable() {
+        enabled = !enabled;
+        if (!enabled) {
+            pixelBuffer = pixelBuffer.map(x => 0);
+            flushPixelBuffer(true);
+        }
+    }
 
     function updateMatrix(matrix) {
         if (matrix == null) { return; }
@@ -25,31 +38,45 @@
     }
 
     async function updateColors(colors) {
+        if (!enabled) { return ; }
         pixelBuffer = colors;
+        pixelBufferCh = true;
     }
 
-    async function flushPixelBuffer() {
-        //console.log(pixelBuffer);
+    async function flushPixelBuffer(force=false) {
+        if (!force && (!pixelBufferCh || !enabled)) { return; }
+        pixelBufferCh = false;
         window.requestAnimationFrame((ts) => {
             for (let i = 0; i+2 < pixelBuffer.length; i+=3) {
+                let pixel;
                 try {
-                    document.querySelector("#sim-pixel-"+(i/3))
-                            .style
-                            .setProperty(
-                                "fill",
-                                `rgb(${pixelBuffer[i]}, ${pixelBuffer[i+1]}, ${pixelBuffer[i+2]})`);
+                    pixel = document.querySelector("#sim-pixel-"+(i/3));
+                    if (pixel == null) { continue; }
+                    pixel.style.setProperty(
+                        "fill",
+                        `rgb(${pixelBuffer[i]}, ${pixelBuffer[i+1]}, ${pixelBuffer[i+2]})`
+                    );
                 } catch(e) {
+                    console.log(pixel);
                     console.log(e);
                 }
             }
         });
     }
-    setInterval(flushPixelBuffer, 50);
 
     onMount(() => {
+        pixels = [];
+        pixelBuffer = [];
+        enabled = false;
         authorizedSocket.on("matrix", updateMatrix);
         authorizedSocket.on("strip_buffer", updateColors);
         authorizedSocket.emit("matrix:get");
+
+        pixelFlushInterval = setInterval(flushPixelBuffer, 1000/target_fps);
+    });
+
+    onDestroy(() => {
+        clearInterval(pixelFlushInterval);
     });
 </script>
 
@@ -67,7 +94,6 @@
 </style>
 
 <div class="wrapper">
-    <p>(still quite buggy, especially for very fast changing pixels, if nothing is happening, try to restart the script)</p>
     <svg viewBox="0 0 0 0" preserveAspectRatio="xMaxYMax" bind:this={svg}>
         {#each pixels as pixel}
             <rect id="sim-pixel-{pixel.n}" x="{pixel.x*2+1}" y="{pixel.y*2+1}" width="1" height="1" style="fill:rgb(0,0,0);filter:blur(0.2px);" />

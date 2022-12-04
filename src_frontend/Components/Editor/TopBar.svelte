@@ -1,4 +1,5 @@
 <script>
+    import { onMount } from "svelte";
     import { createEventDispatcher } from 'svelte';
 	import { pop } from "svelte-spa-router";
     import PrettyVar from "../../ComponentLib/PrettyVar.svelte";

@@ -33,6 +33,8 @@ let modeDebuggerId = null;
 let modeDebuggerProcStartHandler = null;
 /** @type {object} The last received matrix setup */
 let matrix = null;
+/** @type {object} intervall for sending current state */
+let debugModeStateEmitIntervall = null;
 
 eventEmitter.on("proc:exit", (code) => modeExitCode = code);
 eventEmitter.on("matrix", (_matrix) => matrix = _matrix);
@@ -131,7 +133,9 @@ function stopMode(restart=false) {
  * @return {object} A standardform return object.
  */
 function startMode() {
-    if (runtimeProcess === null) { return {success: false, reason: "no runtimeprocess", detail: "Runtimeprocess not set, did you mean to call setMode?"}; }
+    if (runtimeProcess === null) {
+        return {success: false, reason: "no runtimeprocess", detail: "Runtimeprocess not set, did you mean to call setMode?"};
+    }
     return runtimeProcess.start();
 };
 
@@ -226,6 +230,14 @@ function setVariable(name, value) {
 }
 
 /**
+ * A function intented to be used in an interval to emit
+ * the current debug-state.
+ *
+ */
+function debugModeEmitState() {
+}
+
+/**
  * Start debugger for a mode
  *
  * @param {string} modeId - The mode to debug
@@ -246,6 +258,11 @@ function startDebugger(debuggerModeId) {
         });
     } else {
         console.log(modeDebuggerProcStartHandler);
+    }
+
+    if (debugModeStateEmitIntervall == null) {
+        debugModeStateEmitIntervall = setInterval(() => {
+        }, 500);
     }
 
     modeDebuggerActive = true;
