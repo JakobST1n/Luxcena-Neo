@@ -3,6 +3,7 @@
     export let fullWidth = false;
     export let backgroundColor = "#444242";
     export let color = "white";
+    export let alt = null;
 
     export let loadingPromise = null;
     $: listen(loadingPromise);
@@ -63,6 +64,7 @@
     on:click
     class:fullWidth={fullWidth} 
     class:iconButton={faIcon != false}
+    alt={alt}
     style="--bg-color: {backgroundColor};
            --color: {color};">
 

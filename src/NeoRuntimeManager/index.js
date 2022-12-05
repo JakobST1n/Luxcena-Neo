@@ -235,6 +235,12 @@ function setVariable(name, value) {
  *
  */
 function debugModeEmitState() {
+    eventEmitter.emit("debugger:state", {
+        mode: modeDebuggerId,
+        running: runtimeProcess.isRunning,
+        debugMode: modeDebuggerActive,
+        matrix: matrix
+    });
 }
 
 /**
@@ -261,8 +267,7 @@ function startDebugger(debuggerModeId) {
     }
 
     if (debugModeStateEmitIntervall == null) {
-        debugModeStateEmitIntervall = setInterval(() => {
-        }, 500);
+        debugModeStateEmitIntervall = setInterval(debugModeEmitState, 1000);
     }
 
     modeDebuggerActive = true;
@@ -294,6 +299,10 @@ function stopDebugger() {
     modeDebuggerActive = false;
     eventEmitter.removeAllListeners("proc:start", modeDebuggerProcStartHandler);
     modeDebuggerProcStartHandler = null;
+
+    clearInterval(debugModeStateEmitIntervall);
+    debugModeStateEmitIntervall = null;
+
     ipc.sendCommand(IPC.COMMAND.SET_SEND_STRIP_BUF, false);
     return {success: true}
 }

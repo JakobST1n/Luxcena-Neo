@@ -269,12 +269,14 @@ function createAuthorizedNamespace(io) {
         let onProcStop = (code) => socket.emit("editor:proc:exit", code);
         let onProcStdout = (stdout) => socket.volatile.emit("editor:proc:stdout", stdout);
         let onProcStderr = (stderr) => socket.volatile.emit("editor:proc:stderr", stderr);
+        let onDebuggerState = (state) => socket.volatile.emit("editor:debugger:state", state);
         let closeDebugger = () => {
             debuggerOpen = false;
             neoModules.neoRuntimeManager.event.removeListener("proc:start", onProcStart);
             neoModules.neoRuntimeManager.event.removeListener("proc:stop", onProcStop);
             neoModules.neoRuntimeManager.event.removeListener("proc:stdout", onProcStdout);
             neoModules.neoRuntimeManager.event.removeListener("proc:stderr", onProcStderr); 
+            neoModules.neoRuntimeManager.event.removeListener("debugger:state", onDebuggerState);
             return neoModules.neoRuntimeManager.stopDebugger();
         };
         socket.on("editor:open", (modeId, fn) => {
@@ -282,6 +284,7 @@ function createAuthorizedNamespace(io) {
             neoModules.neoRuntimeManager.event.on("proc:exit", onProcStop);
             neoModules.neoRuntimeManager.event.on("proc:stdout", onProcStdout);
             neoModules.neoRuntimeManager.event.on("proc:stderr", onProcStderr);
+            neoModules.neoRuntimeManager.event.on("debugger:state", onDebuggerState);
             let res = neoModules.neoRuntimeManager.startDebugger(modeId);
             if (!res.success) { fn(res); return; }
             logger.info(`Starting debugger for ${modeId}.`)

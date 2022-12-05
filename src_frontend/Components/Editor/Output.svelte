@@ -7,6 +7,7 @@
     let htmlCode = "";
     let buffer = [];
     let flushBufferInterval;
+    let flushBufferIntervalSpeed = 50;
     let lagAmount = 0;
 
     function addData(data, classname) {
@@ -28,26 +29,34 @@
         if (buffer.length > 0) {
             htmlCode += buffer.shift();
         }
-        lagAmount = buffer.length;
+        lagAmount = (buffer.length * flushBufferIntervalSpeed) / 1000;
     };
 
     afterUpdate(() => {
 	    scrollBox.scrollTo(0, scrollBox.scrollHeight);
     });
     
-    authorizedSocket.on("editor:proc:start", () => htmlCode = "");
-    authorizedSocket.on("editor:proc:exit", (code) => addData(`\nMode exited with ${code}\n\n`, "exit"));
-    authorizedSocket.on("editor:proc:stdout", (stdout) => addData(stdout, "stdout"));
-    authorizedSocket.on("editor:proc:stderr", (stderr) => addData(stderr, "stderr"));
+    function onEditorProcStart() { htmlCode = ""; }
+    function onEditorProcExit(code) { addData(`\nMode exited with ${code}\n\n`, "exit"); }
+    function onEditorProcStdout(stdout) { addData(stdout, "stdout"); }
+    function onEditorProcStderr(stderr) { addData(stderr, "stderr"); }
 
     onMount(() => {
         htmlCode = "";
         buffer = [];
-        flushBufferInterval = setInterval(flushBufferPart, 50);
+        flushBufferInterval = setInterval(flushBufferPart, flushBufferIntervalSpeed);
+        authorizedSocket.on("editor:proc:start", onEditorProcStart);
+        authorizedSocket.on("editor:proc:exit", onEditorProcExit);
+        authorizedSocket.on("editor:proc:stdout", onEditorProcStdout);
+        authorizedSocket.on("editor:proc:stderr", onEditorProcStderr);
     });
 
     onDestroy(() => {
         clearInterval(flushBufferInterval);
+        authorizedSocket.off("editor:proc:start", onEditorProcStart);
+        authorizedSocket.off("editor:proc:exit", onEditorProcExit);
+        authorizedSocket.off("editor:proc:stdout", onEditorProcStdout);
+        authorizedSocket.off("editor:proc:stderr", onEditorProcStderr);
     });
 </script>
 
@@ -56,7 +65,8 @@
         height: 100%;
         width: 100%;
         box-sizing: border-box;
-        display: grid;
+        display: flex;
+        flex-direction: column;
     }
     pre {
         height: 100%;
@@ -83,9 +93,9 @@
 </style>
 
 <div>
-    {#if lagAmount > 3}
+    {#if lagAmount > 1.5}
         <span class="lag-alert">
-            Output cannot keep up, and is {lagAmount} chunks behind realtime.
+            Output cannot keep up, and is around {lagAmount.toFixed(1)}s behind realtime.
         </span>
     {/if}
     <pre bind:this={scrollBox}>

@@ -1,17 +1,6 @@
-<script context="module">
-    let debuggerInitialised = false;
-</script>
 <script>
     import { onMount, onDestroy } from "svelte";
-    import { get } from "svelte/store";
 	import { pop } from "svelte-spa-router";
-    import { EditorState, basicSetup } from "@codemirror/basic-setup"
-    import { EditorView, keymap } from "@codemirror/view"
-    import { indentWithTab } from "@codemirror/commands"
-    import { indentUnit } from '@codemirror/language'
-    import { python } from "@codemirror/lang-python"
-    import { HighlightStyle, tags as t } from "@codemirror/highlight"
-    import { notif } from "../../stores/notifs";
     import EditorActionButton from "../../ComponentLib/Button/EditorActionButton.svelte";
     import TopBar from "./TopBar.svelte";
     import Pane from "./Pane.svelte";
@@ -21,257 +10,57 @@
     
     import { authorizedSocket, authorizedSocketNeeded, openSocketConnected } from "../../stores/socketStore";
     authorizedSocketNeeded.set(true);
+    import { attachCodeEditorView, initDebugger, closeDebugger, procIsRunning, codeEditorHasChanges, saveCode, notifErr } from "../../stores/IDEStore";
 
 	export let modeId;
 
-    let codeEditorView;
     let codeEditorEl;
-    let codeEditorHasChanges = false;
-    let procIsRunning = false;
-    let failCount = 0;
-    let reconnecting = false;
 
-    function initDebugger() {
-        if (debuggerInitialised) { return; }
-        addSocketListeners();
-        debuggerInitialised = true;
-        console.log("emitting editor:open");
-        authorizedSocket.emit("editor:open", `user/${modeId}`, (res) => {
-            handleError(res);
-        });
-    }
-
-    function addSocketListeners() {
-        authorizedSocket.on("editor:proc:start", onEditorProcStart);
-        authorizedSocket.on("editor:proc:exit", onEditorProcExit);
-        authorizedSocket.on("editor:debugger:state", onEditorDebuggerState);
-        authorizedSocket.on("editor:code", createCodeEditor);
-        console.log("Attempted to add listeners");
-    }
-
-    function removeSocketListeners() {
-        authorizedSocket.off("editor:proc:start", onEditorProcStart);
-        authorizedSocket.off("editor:proc:exit", onEditorProcExit);
-        authorizedSocket.off("editor:debugger:state", onEditorDebuggerState);
-        authorizedSocket.off("editor:code", createCodeEditor);
-        //authorizedSocket.removeAllListeners("editor:proc:start");
-        //authorizedSocket.removeAllListeners("editor:proc:exit");
-        //authorizedSocket.removeAllListeners("editor:debugger:state");
-        //authorizedSocket.removeAllListeners("editor:code");
-        console.log("Listeners attempted removed");
-    }
-
-    function closeDebugger() {
-        saveCode((res) => {
-            handleError(res);
-            console.log("emitting editor:close");
-            authorizedSocket.emit("editor:close", res => {
-                handleError(res);
-                debuggerInitialised = false;
-            });
-        });
-    }
-
-    function onEditorProcStart() {
-        console.log("received editor:proc:start");
-        procIsRunning = true
-    }
-
-    function onEditorProcExit(code) {
-        console.log("received editor:proc:exit");
-        procIsRunning = false;
-    }
-
-    function onEditorDebuggerState(state) {
-        console.log(state);
-    }
-
-    function notifErr(err) {
-        if (err.hasOwnProperty("detail")) {
-            notif({title: err.reason, type: "danger"});
-        } else {
-            notif({title: err.reason, text: err.detail, type: "danger"});
-        }
-    }
-
-    function handleError(err) {
-        if (err.success) { return; }
-        failCount++;
-        if (failCount < 10) {
-            if (err.reason == "debugger not open") {
-                if (!reconnecting) {
-                    reconnecting = true;
-                    console.log("emitting editor:open");
-                    authorizedSocket.emit("editor:open", `user/${modeId}`, (res) => {
-                        reconnecting = false;
-                        handleError(res);
-                    });
-                }
-            } else {
-                notifErr(err);
-            }
-        } else {
-            notifErr(err);
-        }
-    }
-
-    function createCodeEditor(modeId, code) {
-        console.log("received editor:code");
-        console.log(code);
-        const chalky = "#e5c07b",
-              coral = "#e06c75",
-              cyan = "#56b6c2",
-              invalid = "#ffffff",
-              ivory = "#abb2bf",
-              stone = "#7d8799", 
-              malibu = "#61afef",
-              sage = "#98c379",
-              whiskey = "#d19a66",
-              violet = "#c678dd",
-              darkBackground = "#21252b",
-              highlightBackground = "#2c313a",
-              background = "#282c34",
-              selection = "#3E4451",
-              cursor = "#528bff"
-
-        console.log(codeEditorEl);
-        codeEditorView = new EditorView({
-            state: EditorState.create({
-                extensions: [
-                    basicSetup,
-                    keymap.of([indentWithTab]),
-                    python(),
-                    indentUnit.of("    "),
-                    EditorView.updateListener.of(update => {
-                        if (update.docChanged) {
-                            codeEditorHasChanges = true;
-                        }
-                    }),
-                    EditorView.theme({
-                        "&": {
-                            color: ivory,
-                        },
-
-                        ".cm-content": {
-                            caretColor: cursor
-                        },
-
-                        "&.cm-focused .cm-cursor": {borderLeftColor: cursor},
-                        "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection": {backgroundColor: selection},
-
-                        ".cm-panels": {backgroundColor: darkBackground, color: ivory},
-                        ".cm-panels.cm-panels-top": {borderBottom: "2px solid black"},
-                        ".cm-panels.cm-panels-bottom": {borderTop: "2px solid black"},
-
-                        ".cm-searchMatch": {
-                            backgroundColor: "#72a1ff59",
-                            outline: "1px solid #457dff"
-                        },
-                        ".cm-searchMatch.cm-searchMatch-selected": {
-                            backgroundColor: "#6199ff2f"
-                        },
-
-                        ".cm-activeLine": {backgroundColor: highlightBackground},
-                        ".cm-selectionMatch": {backgroundColor: "#aafe661a"},
-
-                        ".cm-matchingBracket, .cm-nonmatchingBracket": {
-                            backgroundColor: "#bad0f847",
-                            outline: "1px solid #515a6b"
-                        },
-
-                        ".cm-gutters": {
-                            backgroundColor: "transparent",
-                            color: stone,
-                            border: "none"
-                        },
-
-                        ".cm-activeLineGutter": {
-                            backgroundColor: highlightBackground
-                        },
-
-                        ".cm-foldPlaceholder": {
-                            backgroundColor: "transparent",
-                            border: "none",
-                            color: "#ddd"
-                        },
-
-                        ".cm-tooltip": {
-                            border: "1px solid #181a1f",
-                            backgroundColor: darkBackground
-                        },
-                        ".cm-tooltip-autocomplete": {
-                            "& > ul > li[aria-selected]": {
-                                backgroundColor: highlightBackground,
-                                color: ivory
-                            }
-                        }
-                    }, {dark:true}),
-                    HighlightStyle.define([
-                        {tag: t.keyword,
-                         color: violet},
-                        {tag: [t.name, t.deleted, t.character, t.propertyName, t.macroName],
-                         color: coral},
-                        {tag: [t.function(t.variableName), t.labelName],
-                         color: malibu},
-                        {tag: [t.color, t.constant(t.name), t.standard(t.name)],
-                         color: whiskey},
-                        {tag: [t.definition(t.name), t.separator],
-                         color: ivory},
-                        {tag: [t.typeName, t.className, t.number, t.changed, t.annotation, t.modifier, t.self, t.namespace],
-                         color: chalky},
-                        {tag: [t.operator, t.operatorKeyword, t.url, t.escape, t.regexp, t.link, t.special(t.string)],
-                         color: cyan},
-                        {tag: [t.meta, t.comment],
-                         color: stone},
-                        {tag: t.strong,
-                         fontWeight: "bold"},
-                        {tag: t.emphasis,
-                         fontStyle: "italic"},
-                        {tag: t.strikethrough,
-                         textDecoration: "line-through"},
-                        {tag: t.link,
-                         color: stone,
-                         textDecoration: "underline"},
-                        {tag: t.heading,
-                         fontWeight: "bold",
-                         color: coral},
-                        {tag: [t.atom, t.bool, t.special(t.variableName)],
-                         color: whiskey },
-                        {tag: [t.processingInstruction, t.string, t.inserted],
-                         color: sage},
-                        {tag: t.invalid,
-                         color: invalid},
-                    ]),
-                ],
-                doc: code
-            }),
-            parent: codeEditorEl
-        })
-    }
+    //let failCount = 0;
+    //function handleError(err) {
+    //    if (err.success) { return; }
+    //    failCount++;
+    //    if (failCount < 10) {
+    //        if (err.reason == "debugger not open") {
+    //            if (!reconnecting) {
+    //                reconnecting = true;
+    //                console.log("emitting editor:open");
+    //                authorizedSocket.emit("editor:open", `user/${modeId}`, (res) => {
+    //                    reconnecting = false;
+    //                    handleError(res);
+    //                });
+    //            }
+    //        } else {
+    //            notifErr(err);
+    //        }
+    //    } else {
+    //        notifErr(err);
+    //    }
+    //}
 
     function startProc() {
         saveCode((res) => {
-            handleError(res);
-            console.log("emitting editor:startmode");
+            if (!res.success) { notifErr(res); };
+            console.debug("emitting editor:startmode");
             authorizedSocket.emit("editor:startmode", (res) => {
-                handleError(res);
+                if (!res.success) { notifErr(res); };
             });
         });
     }
 
     function stopProc() {
-        console.log("emitting editor:stopmode");
+        console.debug("emitting editor:stopmode");
         authorizedSocket.emit("editor:stopmode", (res) => {
-            handleError(res);
+            if (!res.success) { notifErr(res); };
         });
     }
 
     function restartProc () {
         saveCode((res) => {
-            handleError(res);
-            console.log("emitting editor:restartmode");
+            if (!res.success) { notifErr(res); };
+            console.debug("emitting editor:restartmode");
             authorizedSocket.emit("editor:restartmode", (res) => {
-                handleError(res);
+                if (!res.success) { notifErr(res); };
             }); 
         });
     }
@@ -288,36 +77,13 @@
         }
     }
 
-    function saveCode(fn) {
-        if (codeEditorView == null) { return; }
-        console.log("emitting editor:save");
-        authorizedSocket.emit("editor:save", `user/${modeId}`, codeEditorView.state.doc.toString(), res => {
-            handleError(res);
-            if (fn != null) { fn(res) }
-        });
-        codeEditorHasChanges = false;
-    }
-
     onMount(() => {
-        console.log("onMount");
-        codeEditorHasChanges = false;
-        procIsRunning = false;
-        failCount = 0;
-        reconnecting = false;
-        initDebugger();
+        initDebugger(modeId);
+        attachCodeEditorView(codeEditorEl);
     });
 
     onDestroy(() => {
-        console.log("onDestroy");
-        if (debuggerInitialised) {
-            debuggerInitialised = false;
-            removeSocketListeners();
-        }
-        if (get(openSocketConnected)) {
-            closeDebugger();
-        } else {
-            debuggerInitialised = false;
-        }
+        closeDebugger();
     })
     
     document.addEventListener("keydown", function(e) {
@@ -328,7 +94,7 @@
     }, false);
 
     setInterval(() => {
-        if (codeEditorHasChanges) {
+        if ($codeEditorHasChanges) {
             saveCode();
         }
     }, 5000);
@@ -376,12 +142,12 @@
 </style>
 
 <TopBar modeId={modeId} 
-        hasChange={codeEditorHasChanges}
+        hasChange={$codeEditorHasChanges}
         on:closedebugger={pop}
         on:start={startProc}
         on:stop={stopProc}
         on:restart={restartProc}
-        bind:procIsRunning={procIsRunning} />
+        bind:procIsRunning={$procIsRunning} />
 <main>
     <div class="simulation">
         <Pane header="simulation" contentBackground={simulationBackgrounds[simlulationBackgroundI]}>
