@@ -56,8 +56,10 @@ export function saveCode(fn) {
     if (get(codeEditorView) == null) { return; }
     console.debug("emitting editor:save");
     authorizedSocket.emit("editor:save", get(state).mode, get(codeEditorView).state.doc.toString(), res => {
-        console.debug("save:code callback", res);
-        if (!res.success) { notifErr(res); };
+        if (!res.success) {
+            console.error("save:code callback", res);
+            notifErr(res); 
+        };
         if (fn != null) { fn(res) }
     });
     codeEditorHasChanges.set(false);
