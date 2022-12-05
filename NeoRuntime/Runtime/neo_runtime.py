@@ -204,7 +204,11 @@ class NeoRuntime:
 
 
     def __module_loop(self):
-        self.__module_entry_instance.on_start()
+        try:
+            self.__module_entry_instance.on_start()
+        except Exception as e:
+            traceback.print_exc()
+            sys.exit(1)
 
         self.__module_last_tick   = time.perf_counter()
         self.__module_last_second = time.perf_counter()

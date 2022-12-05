@@ -33,6 +33,7 @@
         height: calc(100% - 35px);
         width: 100%;
         box-sizing: border-box;
+        transition: background-color .04s ease-out;
     }
     .padding { padding: 15px; } 
     .scrollable { overflow: auto; }

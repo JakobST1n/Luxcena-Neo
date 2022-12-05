@@ -121,7 +121,9 @@ class Strip:
 
     def _set_brightness(self, value):
         self.__actual_brightness = value
-        self.strip.setBrightness(value)
+        # Logarithmic curve, to try to make the brightness controll feel more natural.
+        v = int(10**((value-1)/41.11))
+        self.strip.setBrightness(v)
         self.show()
 
     def show(self):
@@ -147,7 +149,11 @@ class Strip:
     def set_pixel_color_XY(self, x, y, *color):
         """Set LED at position n to the provided 24-bit color value (in RGB order).
         """
-        self.set_pixel_color(self.pixelMatrix.get(x, y), *color)
+        try:
+            pixel = self.pixelMatrix.get(x, y)
+            self.set_pixel_color(self.pixelMatrix.get(x, y), *color)
+        except IndexError as e:
+            print(f"Pixel outside matrix cannot be set ({x}, {y})")
 
     def set_segment_color(self, segment, *color):
         """Set a whole segment to the provided red, green and blue color.
