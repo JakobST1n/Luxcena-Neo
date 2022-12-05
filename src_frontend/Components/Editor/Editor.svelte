@@ -33,11 +33,57 @@
 
     function initDebugger() {
         if (debuggerInitialised) { return; }
+        addSocketListeners();
         debuggerInitialised = true;
         console.log("emitting editor:open");
         authorizedSocket.emit("editor:open", `user/${modeId}`, (res) => {
             handleError(res);
         });
+    }
+
+    function addSocketListeners() {
+        authorizedSocket.on("editor:proc:start", onEditorProcStart);
+        authorizedSocket.on("editor:proc:exit", onEditorProcExit);
+        authorizedSocket.on("editor:debugger:state", onEditorDebuggerState);
+        authorizedSocket.on("editor:code", createCodeEditor);
+        console.log("Attempted to add listeners");
+    }
+
+    function removeSocketListeners() {
+        authorizedSocket.off("editor:proc:start", onEditorProcStart);
+        authorizedSocket.off("editor:proc:exit", onEditorProcExit);
+        authorizedSocket.off("editor:debugger:state", onEditorDebuggerState);
+        authorizedSocket.off("editor:code", createCodeEditor);
+        //authorizedSocket.removeAllListeners("editor:proc:start");
+        //authorizedSocket.removeAllListeners("editor:proc:exit");
+        //authorizedSocket.removeAllListeners("editor:debugger:state");
+        //authorizedSocket.removeAllListeners("editor:code");
+        console.log("Listeners attempted removed");
+    }
+
+    function closeDebugger() {
+        saveCode((res) => {
+            handleError(res);
+            console.log("emitting editor:close");
+            authorizedSocket.emit("editor:close", res => {
+                handleError(res);
+                debuggerInitialised = false;
+            });
+        });
+    }
+
+    function onEditorProcStart() {
+        console.log("received editor:proc:start");
+        procIsRunning = true
+    }
+
+    function onEditorProcExit(code) {
+        console.log("received editor:proc:exit");
+        procIsRunning = false;
+    }
+
+    function onEditorDebuggerState(state) {
+        console.log(state);
     }
 
     function notifErr(err) {
@@ -69,8 +115,9 @@
         }
     }
 
-    authorizedSocket.on("editor:code", (modeId, code) => {
+    function createCodeEditor(modeId, code) {
         console.log("received editor:code");
+        console.log(code);
         const chalky = "#e5c07b",
               coral = "#e06c75",
               cyan = "#56b6c2",
@@ -87,6 +134,7 @@
               selection = "#3E4451",
               cursor = "#528bff"
 
+        console.log(codeEditorEl);
         codeEditorView = new EditorView({
             state: EditorState.create({
                 extensions: [
@@ -199,15 +247,7 @@
             }),
             parent: codeEditorEl
         })
-    });
-    authorizedSocket.on("editor:proc:start", () => {
-        console.log("received editor:proc:start");
-        procIsRunning = true
-    });
-    authorizedSocket.on("editor:proc:exit", (code) => {
-        console.log("received editor:proc:exit");
-        procIsRunning = false;
-    });
+    }
 
     function startProc() {
         saveCode((res) => {
@@ -258,18 +298,8 @@
         codeEditorHasChanges = false;
     }
 
-    function closeDebugger() {
-        saveCode((res) => {
-            handleError(res);
-            console.log("emitting editor:close");
-            authorizedSocket.emit("editor:close", res => {
-                handleError(res);
-                debuggerInitialised = false;
-            });
-        });
-    }
-
     onMount(() => {
+        console.log("onMount");
         codeEditorHasChanges = false;
         procIsRunning = false;
         failCount = 0;
@@ -278,6 +308,11 @@
     });
 
     onDestroy(() => {
+        console.log("onDestroy");
+        if (debuggerInitialised) {
+            debuggerInitialised = false;
+            removeSocketListeners();
+        }
         if (get(openSocketConnected)) {
             closeDebugger();
         } else {
