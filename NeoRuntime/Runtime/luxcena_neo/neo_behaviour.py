@@ -5,10 +5,17 @@ from .strip import detect_format_convert_color
 from .color_utils import rgb_from_twentyfour_bit, hex_from_twentyfour_bit
 
 class NeoBehaviour:
-    """
-    This is the base-class "main" should inherit from!
-    All methods are blocking :) This means that you could potentially loose a "tick"
-    For example, if "eachSecond" is taking up the thread, and the clock goes from 11:58 to 12:02, "eachHour", will not be called.
+    """ This is the base-class "main" should inherit from!
+    
+    Note: All methods are blocking
+          This means that you could potentially loose a "tick"
+          
+          For example, if "eachSecond" is taking up the thread, and the clock goes from 11:58 to 12:02, "eachHour", will not be called.
+
+    Danger: Do NOT override __init__ in your implementation, this will break some features.
+               For this purpose you should instead use the [on_start][luxcena_neo.neo_behaviour.NeoBehaviour.on_start] method!
+
+    Important: An instance of the [Strip][luxcena_neo.strip.Strip] class will be available in your module as `strip` without any setup on your part.
     """
 
     def __init__(self, package_path):
@@ -23,7 +30,8 @@ class NeoBehaviour:
         del self.declare
 
     def declare_variables(self):
-        """ This should be overridden, and ALL variables should be declared here. """
+        """ This should be overridden, and ALL variables should be declared here.
+            When this method is called, variables can be declared using `self.declare()`. """
         return
 
     def on_start(self):
@@ -136,8 +144,20 @@ class Variables:
         return {x.name: x.to_dict() for x in self.__vars.values()}
 
 class Variable:
+    """ The base class for any variable, this should _probably_ not be used directly. """
 
     def __init__(self, name, default, var_type: VariableType, on_change = None):
+        """ The base constructor for any variable. All these parameters should likely be passed on by
+            the subclass inheriting this one.
+
+        Args:
+            name: A string which is the name of the variable, keep in mind that this is case sensitive.
+            default: This will be set as the default value of the variable the first time the script is started.
+            var_type: This is the enum number of the variable type, this is just a number which is used to
+                      communicate with the frontend which value picker to show.
+            on_change: Optional callable, which will be called with the new value every time the variable is
+                       updated (both programatically and via user input).
+        """
         self.__name = name
         self.__value = default
         self.__var_type = var_type
@@ -148,7 +168,9 @@ class Variable:
     def name(self): return self.__name
 
     @property
-    def value(self): return self.__value
+    def value(self):
+        """ This is likely the property you should use to get the current value of the variable. """
+        return self.__value
 
     @value.setter
     def value(self, value):
@@ -171,8 +193,22 @@ class Variable:
         self.__save_func = save_func
 
 class ColorVariable(Variable):
+    """ This is a variable storing a color value. 
+
+    Note: Right now, this only properly supports setting the value as a hex string.
+          This will hopefully change in the future, but it is likely that the main
+          operation will remain as hex strings.
+    """
 
     def __init__(self, name: str, *color, **kwargs):
+        """ Constructor for a color variable
+
+        Args:
+            name: Will be passed on to the parent class ([Variable][luxcena_neo.neo_behaviour.Variable]).
+            *color: The next positional parameters will be used as the default color.
+                    Right now, it will just pick the first one, and interpret it as a hex color.
+            **kwargs: Keyword arguments will be passed to the parent class ([Variable][luxcena_neo.neo_behaviour.Variable]).
+        """
         if not self.verify_color(*color):
             raise Exception("Invalid color {}".format(color))
         super().__init__(name, self.extract_interesting(*color), VariableType.COLOR, **kwargs)
@@ -206,8 +242,18 @@ class ColorVariable(Variable):
         return color
 
 class IntegerVariable(Variable):
+    """ A variable for storing a integer value (whole number). """
 
     def __init__(self, name: str, default: int = 0, min_val: int = 0, max_val: int = 255, **kwargs):
+        """ Constructor for a integer variable
+
+        Args:
+            name: Will be passed on to the parent class ([Variable][luxcena_neo.neo_behaviour.Variable]).
+            default: A number which will be set as the default if the mode has never been run before.
+            min_val: The lowest value this variable can have (inclusive).
+            max_val: The highest value this variable can have (inclusive).
+            **kwargs: Keyword arguments will be passed to the parent class ([Variable][luxcena_neo.neo_behaviour.Variable]).
+        """
         self.__min = min_val
         self.__max = max_val
         super().__init__(name, default, VariableType.INT, **kwargs)
@@ -228,8 +274,19 @@ class IntegerVariable(Variable):
 
 
 class FloatVariable(Variable):
+    """ A variable for storing a float value (decimal number). """
 
     def __init__(self, name: str, default: float = 0.0, min_val: float = 0.0, max_val: float = 255.0, step: float = 0.5, **kwargs):
+        """ Constructor for a float variable
+
+        Args:
+            name: Will be passed on to the parent class ([Variable][luxcena_neo.neo_behaviour.Variable]).
+            default: A number which will be set as the default if the mode has never been run before.
+            min_val: The lowest value this variable can have (inclusive).
+            max_val: The highest value this variable can have (inclusive).
+            step: This does not affect the python code, it only affects the value picker which will be shown in the frontend.
+            **kwargs: Keyword arguments will be passed to the parent class ([Variable][luxcena_neo.neo_behaviour.Variable]).
+        """
         self.__min = min_val
         self.__max = max_val
         self.__step = step
@@ -255,8 +312,16 @@ class FloatVariable(Variable):
 
 
 class BooleanVariable(Variable):
+    """ A variable for storing a boolean value (on/off). """
 
     def __init__(self, name: str, default: bool, **kwargs):
+        """ Constructor for a boolean variable
+
+        Args:
+            name: Will be passed on to the parent class ([Variable][luxcena_neo.neo_behaviour.Variable]).
+            default: A boolean which will be set as the default if the mode has never been run before.
+            **kwargs: Keyword arguments will be passed to the parent class ([Variable][luxcena_neo.neo_behaviour.Variable]).
+        """
         super().__init__(name, default, VariableType.BOOL, **kwargs)
     
     @Variable.value.setter
@@ -268,8 +333,24 @@ class BooleanVariable(Variable):
             print("Attempted to set {} to \"{}\", which is not a valid bool...".format(self.name, value))
 
 class Trigger(Variable):
+    """ A trigger which can execute some function.
+
+    Although technically a variable, this is not intended as one.
+    It is intended to be used with a on_change function, such that 
+    this action is performed when this trigger is activated.
+
+    It will show up as a button in the frontend, and can also be triggered by
+    setting the value (What you set it as will be ignored, so e.g. None. """
 
     def __init__(self, name: str, **kwargs):
+        """ Constructor for the Trigger
+        It is important to set the on_change callable (see the Variable class). If you don't
+        this class is completely useless.
+
+        Args:
+            name: The name of the trigger variable (mostly useful if you wanted to trigger it in the code).
+            **kwargs: Keyword arguments will be passed to the parent class ([Variable][luxcena_neo.neo_behaviour.Variable]).
+        """
         super().__init__(name, False, VariableType.TRIGGER, **kwargs)
     
     @Variable.value.setter

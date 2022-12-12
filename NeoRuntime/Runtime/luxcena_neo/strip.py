@@ -24,6 +24,14 @@ except ModuleNotFoundError:
 
 
 class Strip:
+    """ Class representing a led-strip,
+
+    If you are using the NeoBehaviour runtime, an pre-configured instance of this will
+    be setup in your module with the name `strip`.
+    
+    Attributes:
+        SEGMENTS (list[int]): A list of the configured segments.
+    """
 
     def __init__(self, strip_conf):
         # Read in all config options
@@ -97,20 +105,24 @@ class Strip:
 
     @property
     def power_on(self):
+        """ Wether the power action is on or not. """
         return self.__power_on
 
     @power_on.setter
     def power_on(self, value: bool):
+        """ Will set brightness to zero if value is false, or restore brightness to the last value if true. """
         self.__power_on = value
         self._set_brightness(self.__set_brightness if self.power_on else 0)
         self.save_globvars()
 
     @property
     def brightness(self):
+        """ The current brightness. """
         return self.__actual_brightness
 
     @brightness.setter
     def brightness(self, value: int):
+        """ Will set the brightness if power is on, if not it will simply save it. """
         if 0 <= value <= 255:
             self.__set_brightness = value
             if (self.power_on):
@@ -127,12 +139,16 @@ class Strip:
         self.show()
 
     def show(self):
-        """Update the display with the data from the LED buffer."""
+        """Update the display with the data from the LED buffer, you can think of it as a flush method."""
         self.COLORSTATE = self.TMPCOLORSTATE
         self.strip.show()
 
     def set_pixel_color(self, n, *color):
-        """Set LED at position n to the provided 24-bit color value (in RGB order).
+        """Set the color of the LED at position N.
+
+        Args:
+            n (int): The pixel to set.
+            *color: This will be interpreted as a color.
         """
         if n >= self.LED_COUNT: return
         c = detect_format_convert_color(*color)
@@ -147,7 +163,14 @@ class Strip:
         # )
 
     def set_pixel_color_XY(self, x, y, *color):
-        """Set LED at position n to the provided 24-bit color value (in RGB order).
+        """Set the color of a LED at position (x, y) in the matrix you have configured to a color.
+
+        Note: This will only print a warning message if you try to set pixels outside the matrix.
+
+        Args:
+            x (int): The x position.
+            y (int): The y position.
+            *color: This will be interpreted as a color.
         """
         try:
             pixel = self.pixelMatrix.get(x, y)
@@ -156,9 +179,12 @@ class Strip:
             print(f"Pixel outside matrix cannot be set ({x}, {y})")
 
     def set_segment_color(self, segment, *color):
-        """Set a whole segment to the provided red, green and blue color.
-        Each color component should be a value from 0 to 255 (where 0 is the
-        lowest intensity and 255 is the highest intensity)."""
+        """Set a whole segment to the provided color.
+
+        Args:
+            segment (int): The segment to set.
+            *color: This will be interpreted as a color.
+        """
         if segment >= len(self.SEGMENTS): return
         for n in get_segment_range(self.SEGMENTS, segment):
             self.set_pixel_color(n, *color)
@@ -177,11 +203,25 @@ class Strip:
         """Get the 24-bit RGB color value for the LED at position n."""
         return self.strip.getPixelColor(n)
 
-    def blank(self):
-        """Will turn off all pixels, this also calls show for you."""
+    def blank(self, auto_show=True):
+        """Will turn off all pixels.
+
+        Args:
+            auto_show (bool): If set to true, strip.show() is called. Disable this if needed for some quicker animations.
+        """
         for n in range(self.LED_COUNT):
             self.set_pixel_color(n, 0)
-        self.show()
+        if auto_show:
+            self.show()
+
+    def set_strip_color(self, *color):
+        """Set all pixels in the strip to a color
+
+        Args:
+            *color: This will be interpreted as a color.
+        """
+        for n in range(self.LED_COUNT):
+            self.set_pixel_color(n, *color)
 
 
 def color_from_rgb(red, green, blue, white=0):

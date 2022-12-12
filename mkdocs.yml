@@ -1,6 +1,7 @@
 site_name: Luxcena Neo Documentation
 site_dir: public/docs
-theme: material
+theme:
+  name: material
 extra_javascript:
     - assets/luxcena-colors.js
     - assets/webfont.js
@@ -31,6 +32,11 @@ markdown_extensions:
     - pymdownx.tasklist:
         custom_checkbox: true
     - pymdownx.tilde
+plugins:
+    - mkdocstrings:
+        handlers:
+            python:
+              paths: [NeoRuntime/Runtime]
 nav:
     - Introduction: index.md
     - Plan for the future: FuturePlan.md
@@ -39,13 +45,12 @@ nav:
         - Configuration: Usage/Configuration.md
         - CLI: Usage/CLI.md
     - Scripting:
-        - Support Library: Scripting/SupportLib/README.md
-        - Examples:
-            - Strandtest: Scripting/Examples/strandtest.md
+        - Strip: Scripting/Strip.md
+        - Main interface: Scripting/NeoBehaviour.md
+          #- Support Library: Scripting/SupportLib/README.md
     - Code Documentation:
-        - Modules:
-            - CompileAndRun: "Code Documentation/Modules/CompileAndRun.md"
+        #- Modules:
+        #    - CompileAndRun: "Code Documentation/Modules/CompileAndRun.md"
         - Run: Code Documentation/Run/index.md
-        - Design: Code Documentation/Design/index.md
         - API:
             - Socket-IO: Code Documentation/SocketIO.md
