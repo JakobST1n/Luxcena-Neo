@@ -4,8 +4,8 @@ printf "\e[37mLuxcena-\e[31mn\e[32me\e[34mo\e[0m\n"
 printf '\e[93m%s\e[0m' "-----------"
 
 if [ "$EUID" -ne 0 ]; then
-    echo "You need to run this script as root."
-    echo "Try running with 'sudo ./bin/install.sh'"
+    echo "\nYou need to run this script as root."
+    echo "Try running with 'sudo $0/install.sh'"
     exit 1
 fi
 
@@ -38,7 +38,8 @@ function header() {
 
 function commandError() {
     trap - 1
-    cat /tmp/luxcena-neo-update.log
+    cat $1
+    rm $1
     
     TPUT setaf 1
     printf "\n\nInstall failed.\n"
@@ -71,7 +72,8 @@ function execCommand() {
       printf "\n>> $1 "
     fi
     TPUT sgr0
-    bash -c "$1 > /tmp/luxcena-neo-update.log 2>&1" &
+    log=$(mktemp)
+    bash -c "$1 > $log 2>&1" &
 
     PID=$!
     
@@ -94,9 +96,10 @@ function execCommand() {
         TPUT cuf $(tput cols)
         printf "\n"
         if [ $# -eq 1 ] || [ $2 -eq "0" ]; then
-            commandError
+            commandError $1
         fi
     fi
+    rm $log
 }
 
 TPUT civis
@@ -116,9 +119,6 @@ execCommand "usermod -a -G spi  $username"
 
 # First we make our directories
 header "Making directories"
-[ -d "/opt/luxcena-neo/" ] && echo "\nSeems like luxcena-neo is already installed, please do update instead" && die
-execCommand "mkdir -p \"/opt/luxcena-neo\""
-execCommand "chown $username:$username \"/opt/luxcena-neo\""
 execCommand "mkdir -p \"/var/luxcena-neo\""
 execCommand "chown $username:$username \"/var/luxcena-neo\""
 execCommand "mkdir -p \"/etc/luxcena-neo\""
@@ -126,56 +126,37 @@ execCommand "chown $username:$username \"/etc/luxcena-neo\""
 execCommand "mkdir -p \"/var/log/luxcena-neo\""
 execCommand "chown $username:$username \"/var/log/luxcena-neo\""
 
-# Choose branch to install
-TPUT cnorm
-printf '\n%s' "Which branch do you want to install (default: master)? "
-read BRANCH
-if [ -z "$BRANCH" ]; then
-    BRANCH="master"
-fi
-TPUT civis
-
-# Get source code
-header "Fetch source code"
-execCommand "runuser -l $username -c \"git clone -b $BRANCH https://github.com/jakobst1n/luxcena-neo /opt/luxcena-neo/\""
-execCommand "chown -R lux-neo:lux-neo /opt/luxcena-neo"
-
 # Install dependencies
 header "Install dependencies"
 if [ "$(uname -m)" = "armv6l" ]; then
-  execCommand "wget https://unofficial-builds.nodejs.org/download/release/v14.10.0/node-v14.10.0-linux-armv6l.tar.gz"
-  execCommand "tar -xzf node-v14.10.0-linux-armv6l.tar.gz"
-  execCommand "sudo cp -r node-v14.10.0-linux-armv6l/* /usr/local"
-  execCommand "rm -r node-v14.10.0-linux-armv6l"
-  execCommand "rm node-v14.10.0-linux-armv6l.tar.gz"
+  execCommand "wget https://unofficial-builds.nodejs.org/download/release/v18.9.1/node-v18.9.1-linux-armv6l.tar.gz"
+  execCommand "tar -xzf node-v18.9.1-linux-armv6l.tar.gz"
+  execCommand "sudo cp -r node-v18.9.1-linux-armv6l/* /usr/local"
+  execCommand "rm -r node-v18.9.1-linux-armv6l"
+  execCommand "rm node-v18.9.1-linux-armv6l.tar.gz"
 else
-  execCommand "wget -qO- https://deb.nodesource.com/setup_14.x | bash -"
+  execCommand "wget -qO- https://deb.nodesource.com/setup_18.x | bash -"
   execCommand "apt -q update"
   execCommand "apt -qy install nodejs"
 fi
+execCommand "apt -qy install jq curl"
 execCommand "apt -qy install python3-pip"
 execCommand "pip3 install virtualenv"
-execCommand "runuser -l 'lux-neo' -c \"export NODE_ENV=development; npm --prefix /opt/luxcena-neo install /opt/luxcena-neo\""
 
-# Create virtualenv
-header "Create python virtualenv and install dependencies"
-execCommand "rm -rf /opt/luxcena-neo/NeoRuntime/Runtime/venv"
-execCommand "virtualenv -p /usr/bin/python3 /opt/luxcena-neo/NeoRuntime/Runtime/venv"
-execCommand "source /opt/luxcena-neo/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x"
+# Get package
+header "Download luxcena-neo"
+INSTALLDIR=$(getent passwd "$username" | cut -d: -f6)
+APIURL="https://api.github.com/repos/JakobST1n/luxcena-neo"
+REPOINFO=$(curl -s "$APIURL/releases/86402456" -H "Accept: application/vnd.github+json")
+TARBALL_NAME=$(echo "$REPOINFO" | jq '.assets[0].name')
+TARBALL_URL=$(echo "$REPOINFO" | jq '.assets[0].browser_download_url')
+execCommand "runuser -l $username -c \"curl -s -L -o $INSTALLDIR/$TARBALL_NAME $TARBALL_URL\""
 
-# Build the source code
-header "Build source code"
-execCommand "runuser -l 'lux-neo' -c \"npm --prefix /opt/luxcena-neo run build:frontend\""
-execCommand "runuser -l 'lux-neo' -c \"npm --prefix /opt/luxcena-neo run build:fontawesome\""
-execCommand "runuser -l 'lux-neo' -c \"npm --prefix /opt/luxcena-neo run build:dialog-polyfill\""
-
-# Install systemd service
-header "Install new systemd service"
-execCommand "cp /opt/luxcena-neo/bin/luxcena-neo.service /etc/systemd/system/luxcena-neo.service"
-execCommand "systemctl daemon-reload"
-execCommand "systemctl enable luxcena-neo"
-execCommand "systemctl start luxcena-neo"
+header "Install luxcena-neo"
+execCommand "runuser -l $username -c \"export NODE_ENV=production; npm --prefix $INSTALLDIR/luxcena-neo/ install $INSTALLDIR/$TARBALL_NAME \""
+execCommand "runuser -l $username -c \"rm $INSTALLDIR/$TARBALL_NAME\""
 
 # Installation is done!
 printf '\n\e[5m%s\e[0m\n' "🎉Luxcena-Neo is now installed🎉"
+echo "Run 'sudo $INSTALLDIR/luxcena-neo/node_modules/luxcena-neo/bin/luxcena-neo.sh'"
 TPUT cnorm

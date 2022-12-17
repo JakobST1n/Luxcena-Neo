@@ -1,0 +1,14 @@
+__pycache__
+*.pyc
+venv
+tmp
+
+*.log
+*.error
+
+state.json
+variables.json
+globvars.json
+
+/src_frontend/
+/docs/assets/

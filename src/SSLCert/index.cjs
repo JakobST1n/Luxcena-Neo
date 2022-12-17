@@ -7,9 +7,9 @@
  * @author jakobst1n.
  * @since  14.16.2019
  */
- let logger = require(__appdir + "/src/Logger");
- const fs = require("fs");
- const { execSync } = require("child_process");
+let logger = require("../Logger/index.cjs");
+const fs = require("fs");
+const { execSync } = require("child_process");
  
 var neoModules;
 
@@ -70,7 +70,7 @@ var neoModules;
          let res = openssl(
              `genrsa ` +
              `-out "${certPath}/root-CA.key.pem" ` +
-             `2048`
+             `4096`
          );
  
          // Self sign the Root Certificate Autority
@@ -82,6 +82,7 @@ var neoModules;
              `-key "${certPath}/root-CA.key.pem" ` +
              `-days 1024 ` +
              `-out "${certPath}/root-CA.crt.pem" ` +
+             `-sha256  ` +
              `-subj "/C=NO/ST=Oslo/L=Oslo/O=Luxcena Neo Self-Signing Authority/CN=${config.CN}"`
          );
  
@@ -91,7 +92,7 @@ var neoModules;
          res = openssl(
              `genrsa ` +
              `-out "${certPath}/privkey.pem" ` +
-             `2048`
+             `4096`
          );
  
          // Create a request from your Device, which your Root CA will sign
@@ -113,6 +114,7 @@ var neoModules;
              `-CAkey "${certPath}/root-CA.key.pem" ` +
              `-CAcreateserial ` +
              `-out "${certPath}/cert.pem" ` +
+             `-sha256 ` +
              `-days 500`
          );
  

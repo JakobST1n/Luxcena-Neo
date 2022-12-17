@@ -7,9 +7,9 @@
 
 const fs = require("fs");
 const fsPromises = fs.promises;
-const RuntimeProcess = require("./RuntimeProcess");
-const IPC = require("./IPC");
-const logger = require(__appdir + "/src/Logger");
+const RuntimeProcess = require("./RuntimeProcess.cjs");
+const IPC = require("./IPC.cjs");
+const logger = require("../Logger/index.cjs");
 const EventEmitter = require('events');
 
 /** @type {object} this should be a pointer to a object referencing all neoModules (see app.js) */

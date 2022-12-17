@@ -6,7 +6,7 @@
  * @since  19.12.2019
  */
 
-let logger = require(__appdir + "/src/Logger");
+let logger = require("../Logger/index.cjs");
 let fse = require("fs-extra");
 let ini = require('ini');
 

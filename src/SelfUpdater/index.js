@@ -1,12 +1,30 @@
-let fs = require("fs-extra");
-const fsPromises = fs.promises;
-let url = require("url");
-let request = require('request');
-const spawn = require('child_process').spawn;
-const EventEmitter = require('events')
-let logger = require(__appdir + "/src/Logger");
+import { existsSync, readFileSync } from 'fs';
+import { ensureDirSync } from 'fs-extra';
+import { copyFile, rm } from 'fs/promises';
+import url from 'node:url';
+import { spawn } from 'child_process';
+import { EventEmitter } from 'events';
+import logger from '../Logger/index.cjs'
+import fetch from 'node-fetch';
 
 let neoModules;
+
+/**
+ * Get the latest release from GitHub
+ */
+async function getLatestRelease() {
+    let res = await fetch("https://api.github.com/repos/jakobst1n/luxcena-neo/releases/86402456");
+
+    if (res.status !== 200) {
+        console.log(res.status);
+        this.remoteVersionNumber = "Unknown";
+        this.newVersion = false;
+        throw Error(`Could not get latest release (${res.status})...`);
+    }
+
+    return await res.json()
+}
+
 
 /**
  * This just tests if the current appdir is the "default" location
@@ -20,17 +38,17 @@ function isInstalledInDefaultLocation() {
  * it will add a number at the end if something already exists,
  */
 function createUniqueDir(path, prefix) {
-    fs.ensureDirSync(path);
+    ensureDirSync(path);
     let fn = `${path}/${prefix}`;
     let i = 0;
     let cFn = fn;
     while (true) {
-        if (fs.existsSync(cFn)) {
+        if (existsSync(cFn)) {
             i++;
             cFn = `${fn}.${i}`;
             continue;
         }
-        fs.ensureDirSync(cFn);
+        ensureDirSync(cFn);
         return cFn;
     }
 }
@@ -107,56 +125,56 @@ class Updater {
         this.backupdir = null;
         this.backupcomplete = false;
 
-        if (!isInstalledInDefaultLocation()) {
-            return {success: false, reason: "not installed in default location", detail: __appdir};
-        }
         this.updating = true;
         this.event.emit("start");
     
         neoModules.neoRuntimeManager.stopMode();
 
         try {
+            // Get info about the latest release 
+            this.latestRelease = await getLatestRelease();
+
             // Download update
-            this.setStep("Downloading update (1/8)");
+            this.setStep("Downloading update (1/7)");
             this.setCommand("Create updatedir");
             this.updatedir = createUniqueDir("/tmp", "luxcena-neo.update");
+            this.setCommand("Download package");
             await this.downloadUpdate(this.updatedir);
-    
+
             // Create backup
-            this.setStep("Creating backup (2/8)");
+            this.setStep("Creating backup (2/7)");
             this.setCommand("Create backupdir");
             this.backupdir = createUniqueDir("/var/luxcena-neo/backups", "backup");
             this.setCommand(`Copy ${__appdir} into ${this.backupdir}`);
-            await fs.copy(__appdir, this.backupdir);
+            await copyFile(__appdir, this.backupdir);
             this.backupcomplete = true;
     
-            // Install update
-            this.setStep("Installing update (3/8)");
-            this.setCommand(`Copy ${this.updatedir} into /opt/luxcena-neo`);
-            await fs.copy(this.updatedir, __appdir);
-    
             // Install dependencies
-            this.setStep("Installing dependencies (4/8)");
+            this.setStep("Installing dependencies (3/7)");
             await this.installDependencies();
-    
-            // Create python virtualenv
-            this.setStep("Making virtualenv (5/8)");
-            await this.makeVirtualenv();
-    
-            // Build source code
-            this.setStep("Building source (6/8)");
-            await this.build();
+            return
+            
+            // Install package
+            this.setStep("Installing package (4/7)");
+            await this.installPackage(this.updatedir);
+
+            // Install update
+            this.setStep("Installing update (5/7)");
+            this.setCommand(`Copy ${this.updatedir} into ${__appdir}`);
+            await copyFile(this.updatedir, __appdir);
 
             // Cleanup
-            this.setStep("Cleaning up (7/8)");
+            this.setStep("Cleaning up (6/7)");
             await this.cleanup();
     
             // Restart self, systemd service restart policy will start us up again.
-            this.setStep("Stopping luxcena neo service in the hope that systemd will restart it. (8/8)");
+            this.setStep("Stopping luxcena neo service in the hope that systemd will restart it. (7/7)");
             this.setCommand("EXIT");
             this.updating = false;
             this.event.emit("end");
-            process.exit(0);
+            setTimeout(() => {
+                process.exit(0);
+            }, 1000);
     
         } catch (e) {
             logger.crit(`Updater failed miserably...`);
@@ -174,7 +192,7 @@ class Updater {
                 if (this.backupcomplete && (this.backupdir != null)) {
                     this.setStep("Restoring backup");
                     this.setCommand(`Copy ${this.backupdir} into /opt/luxcena-neo`);
-                    await fs.copy(this.backupdir, __appdir);
+                    await copyFile(this.backupdir, __appdir);
                 }
                 this.setStep("Cleaning up");
                 await this.cleanup();
@@ -201,9 +219,7 @@ class Updater {
      * into the temporary folder
      */
     async downloadUpdate(tmpdir) {
-        let url = (await this.run(`git`, ["-C", __appdir, "remote", "get-url", "origin"])).out.replace("\n","");
-        let branch = (await this.run(`git`, ["-C", __appdir, "rev-parse", "--abbrev-ref", "HEAD"])).out.replace("\n","");
-        await this.run(`git`, ["clone", "-b", branch, url, tmpdir]);
+        await this.run(`curl`, ["-s", "-L", "-o", `${tmpdir}/${this.latestRelease["assets"][0]["name"]}`, this.latestRelease["assets"][0]["browser_download_url"]]);
     }
 
     async installDependencies() {
@@ -218,45 +234,24 @@ class Updater {
             await this.run("rm", ["node-v14.10.0-linux-armv6l.tar.gz"]);
         } else {
             await this.run("sh", ["-c", "wget -qO- https://deb.nodesource.com/setup_14.x | bash -"]);
-            await this.run("apt", ["-qy", "install", "nodejs", "python3-pip"]);
-            await this.run("pip3", ["install", "virtualenv"]);
-            await this.run("sh", ["-c", `export NODE_ENV=development; npm --prefix \"${__appdir}\" install \"${__appdir}\"`]);
-        }
-    }
-
-    async makeVirtualenv() {
-        this.setCommand("Deleting old virtualenv");
-        if (fs.existsSync(`${__appdir}/NeoRuntime/Runtime/venv`)) {
-            await fs.remove(`${__appdir}/NeoRuntime/Runtime/venv`);
         }
 
-        await this.run("virtualenv", ["-p", "/usr/bin/python3", `${__appdir}/NeoRuntime/Runtime/venv`]);
-        await this.run("sh", ["-c", `. ${__appdir}/NeoRuntime/Runtime/venv/bin/activate && pip install rpi_ws281x`]);
+        await this.run("apt", ["-qy", "install", "nodejs", "python3-pip"]);
+        await this.run("pip3", ["install", "virtualenv"]);
     }
 
-    async build() {
-        await this.run("sh", ["-c", `npm --prefix \"${__appdir}\" run build:frontend`]);
-        await this.run("sh", ["-c", `npm --prefix \"${__appdir}\" run build:fontawesome`]);
-        await this.run("sh", ["-c", `npm --prefix \"${__appdir}\" run build:dialog-polyfill`]);
-    }
-
-    async installSystemdService() {
-        this.setCommand("Deleting old systemd service");
-        await fs.remove("/etc/systemd/system/luxcena-neo.service");
-        this.setCommand("Installing new systemd service");
-        await fs.copy("/opt/luxcena-neo/bin/luxcena-neo.service", "/etc/systemd/system/luxcena-neo.service");
-        await this.run("systemctl", ["daemon-reload"]);
-        await this.run("systemctl", ["enable", "luxcena-neo"]);
+    async installPackage(tmpdir) {
+        await this.run("sh", ["-c", `export NODE_ENV=production; npm --prefix "${tmpdir}/luxcena-neo/" install "${tmpdir}/${this.latestRelease["assets"][0]["name"]}"`]);
     }
 
     async cleanup() {
         if (this.updatedir != null) {
             this.setCommand(`Removing temporary update files ${this.updatedir}`);
-            await fs.remove(this.updatedir);
+            await rm(this.updatedir);
         }
         if (this.backupdir != null) {
             this.setCommand(`Removing ${this.backupdir}, thinking everything went fine :)`);
-            await fs.remove(this.backupdir);
+            await rm(this.backupdir);
         }
     }
 
@@ -265,10 +260,8 @@ class Updater {
 class SelfUpdater {
 
     constructor() {
-        this.branch;
         this.repoUrl;
         this.localPackageJson;
-        this.remotePackageJSON
         this.localVersionNumber;
         this.remoteVersionNumber;
         this.newVersion = false;
@@ -281,37 +274,41 @@ class SelfUpdater {
         this.updater = new Updater();
     }
 
-    async checkVersion() {
-        this.localPackageJson = JSON.parse(fs.readFileSync(__appdir + "/package.json"));
+    async getCurrentVersionNumber() {
+        this.localPackageJson = JSON.parse(readFileSync(__appdir + "/package.json"));
         this.localVersionNumber = this.localPackageJson["version"];
-        this.branch = (await promiseSpawn(`git`, ["-C", __appdir, "rev-parse", "--abbrev-ref", "HEAD"])).out.replace("\n","");
-        request.get(
-            "https://raw.githubusercontent.com/JakobST1n/Luxcena-Neo/" + this.branch + "/package.json",
-            (error, response, body) => {
-                if (!error && (response.statusCode === 200)) {
-                    this.remotePackageJSON = JSON.parse(body);
-                    this.remoteVersionNumber = this.remotePackageJSON["version"];
-                    if (this.localVersionNumber != this.remoteVersionNumber) {
-                        logger.notice("A new version is available on \"" + this.branch + "\" (v" + this.remoteVersionNumber + ")");
-                        this.newVersion = true;
+        return this.localVersionNumber;
+    }
 
-                    } else {
-                        logger.info(`Running newest version (${this.localVersionNumber})`);
-                        this.newVersion = false;
-                    }
-                } else {
-                    logger.notice("Could not find latest version! Please check you internet connection.");
-                    this.remotePackageJSON = null;
-                    this.remoteVersionNumber = "Unknown";
-                    this.newVersion = false;
-                }
-            }
-        );
+    async getLatestVersionNumber() {
+        this.remoteVersionNumber = (await getLatestRelease())["tag_name"];
+        return this.remoteVersionNumber;
+    }
+
+    async checkVersion() {
+        let current_version;
+        let latest_version;
+        try {
+            current_version = await this.getCurrentVersionNumber();
+            latest_version = await this.getLatestVersionNumber();
+        } catch (err) {
+            logger.notice("Could not find latest version! Please check you internet connection.");
+            return;
+        }
+
+        if (current_version != latest_version) {
+            logger.notice(`A new version is available on (v${latest_version})`);
+            this.newVersion = true;
+
+        } else {
+            logger.info(`Running newest version (${current_version})`);
+            this.newVersion = false;
+        }
     }
 
 }
  
-module.exports = (_neoModules) => {
+export default function(_neoModules) {
     neoModules = _neoModules;
     return new SelfUpdater();
 };

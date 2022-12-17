@@ -1,8 +1,12 @@
-let fse = require("fs-extra");
-let events = require('events');
+import { existsSync, readFileSync } from 'fs';
+import events from 'node:events';
+import path from 'path';
+import {fileURLToPath} from 'url';
 
 // Firstly we set up all globals, check that the usrData dir exists, if not, we run the setup
-global.__appdir    = "/opt/luxcena-neo";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
+global.__appdir    = __dirname;
 global.__configdir = "/etc/luxcena-neo";
 global.__datadir   = "/var/luxcena-neo";
 global.__logdir    = "/var/log/luxcena-neo";
@@ -13,8 +17,8 @@ if ((process.argv.length >= 3) && (process.argv[2] == "dev")) {
     global.__datadir   = __dirname + "/tmp/userdata";
     global.__logdir    = __dirname + "/tmp/logs";
 }
-if (!fse.existsSync(global.__appdir)) {
-    console.log(`CRITICAL UserDir not found '${userDir}'! Exiting...`);
+if (!existsSync(global.__appdir)) {
+    console.log(`CRITICAL AppDir not found '${global.__appdir}'! Exiting...`);
     process.exit(1);
 }
 
@@ -22,29 +26,35 @@ if (!fse.existsSync(global.__appdir)) {
 global.__event = new events.EventEmitter();
 
 // Secondly we setup the logger,
-let logger = require("./src/Logger");
+import logger from './src/Logger/index.cjs'
 logger.info("Starting Luxcena-Neo...");
 
 let neoModules = {};
-neoModules.userData = require("./src/UserData")(neoModules);
-neoModules.SSLCert = require("./src/SSLCert")(neoModules);
-neoModules.selfUpdater = require("./src/SelfUpdater")(neoModules);
-neoModules.neoRuntimeManager = require("./src/NeoRuntimeManager")(neoModules);
+import UserData from './src/UserData/index.cjs';
+neoModules.userData = UserData(neoModules);
+import SSLCert from './src/SSLCert/index.cjs';
+neoModules.SSLCert = SSLCert(neoModules);
+import SelfUpdater from './src/SelfUpdater/index.js';
+neoModules.selfUpdater = SelfUpdater(neoModules);
+import NeoRuntimeManager from './src/NeoRuntimeManager/index.cjs';
+neoModules.neoRuntimeManager = NeoRuntimeManager(neoModules);
 
 neoModules.neoRuntimeManager.mode.set(neoModules.userData.config.activeMode);
 
 // All the domain-things are now setup, we are ready to run our main program...
-let express = require("express");
-let https = require("https");
+import express from 'express';
+import https from 'https';
 let app = express();
 let server = https.createServer({
-        key: fse.readFileSync(__configdir + "/certs/privkey.pem"),
-        cert: fse.readFileSync(__configdir + "/certs/cert.pem")
+        key: readFileSync(__configdir + "/certs/privkey.pem"),
+        cert: readFileSync(__configdir + "/certs/cert.pem")
     },
     app
 );
-let io = require("socket.io")(server);
-require("./src/SocketIO")(neoModules, io);
+import {Server} from 'socket.io';
+let io = new Server(server);
+import SocketIO from './src/SocketIO/index.cjs'
+SocketIO(neoModules, io);
 app.use("/", express.static(__appdir + "/public"));
 
 server.listen(neoModules.userData.config.HTTP.port,  () => {
@@ -78,7 +88,7 @@ function getNetworkAddress() {
     }
     return results[Object.keys(results)[0]][0]
 }
-let http = require("http");
+import http from 'http';
 function tryBroadcastSelf() {
     if (neoModules.userData.config.DiscoveryServer.broadcastSelf) {
         let address = neoModules.userData.config.DiscoveryServer.address;

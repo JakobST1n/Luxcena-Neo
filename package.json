@@ -4,25 +4,32 @@
     "description": "A all in one system for controlling addressable LEDs from a Raspberry Pi",
     "scripts": {
         "start": "node app.js",
-        "dev": "node runDev.js",
-
+        "dev": "node runDev.cjs",
         "dev:frontend": "rollup -c -w",
         "build:frontend": "rollup -c",
         "build:fontawesome": "mkdir -p public/assets/vendor/@fortawesome/fontawesome-free/webfonts && mkdir -p public/assets/vendor/@fortawesome/fontawesome-free/css && cp -a ./node_modules/@fortawesome/fontawesome-free/webfonts public/assets/vendor/@fortawesome/fontawesome-free/ && cp ./node_modules/@fortawesome/fontawesome-free/css/all.min.css public/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css",
         "build:dialog-polyfill": "mkdir -p public/assets/vendor/dialog-polyfill && cp ./node_modules/dialog-polyfill/dist/dialog-polyfill.css public/assets/vendor/dialog-polyfill/dialog-polyfill.css",
-        "prebuild:docs": "pip3 install mkdocs mkdocs-gitbook pygments pymdown-extensions mkdocstrings mkdocstrings-python",
+        "prebuild:docs": "pip3 install mkdocs mkdocs-material pygments pymdown-extensions mkdocstrings mkdocstrings-python",
         "build:docs": "mkdocs build",
         "build": "npm run build:frontend && npm run build:fontawesome && npm run build:dialog-polyfill && npm run build:docs",
-
-        "prepack": "npm run build"
+        "prepack": "npm run build",
+        "postinstall": "bash ./bin/postinstall.sh"
     },
-    "bundleDependencies": true,
+    "type": "module",
+    "bundleDependencies": [
+        "crypto-js",
+        "express",
+        "fs-extra",
+        "ini",
+        "node-fetch",
+        "socket.io"
+    ],
     "dependencies": {
         "crypto-js": "^3.1.9-1",
         "express": "^4.16.3",
-        "fs-extra": "^8.1.0",
+        "fs-extra": "^11.1.0",
         "ini": "^2.0.0",
-        "request": "^2.88.0",
+        "node-fetch": "^3.3.0",
         "socket.io": "^4.1.3"
     },
     "devDependencies": {

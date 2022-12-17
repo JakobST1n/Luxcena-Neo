@@ -137,11 +137,12 @@ if [ $res -eq 1 ]; then
 
     header "Uninstall luxcena-neo"
     execCommand "rm -f /etc/systemd/system/luxcena-neo.service"
-    execCommand "rm -rf /opt/luxcena-neo"
+    execCommand "systemctl reload-daemon"
+    execCommand "rm -rf /var/log/luxcena-neo"
 
     TPUT setaf 2
     printf "\nEverything should now be gone.\n"
-    printf "/etc/luxcena-neo and /var/log/luxcena-neo is not removed.\n"
+    printf "/etc/luxcena-neo is not removed.\n"
     TPUT sgr0
     TPUT setaf 8
     printf "Well, some dependencies still exists. Those are:\n"
