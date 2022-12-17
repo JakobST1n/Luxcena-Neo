@@ -13,7 +13,7 @@ let neoModules;
  * Get the latest release from GitHub
  */
 async function getLatestRelease() {
-    let res = await fetch("https://api.github.com/repos/jakobst1n/luxcena-neo/releases/86402456");
+    let res = await fetch("https://api.github.com/repos/jakobst1n/luxcena-neo/releases/latest");
 
     if (res.status !== 200) {
         console.log(res.status);

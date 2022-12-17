@@ -147,7 +147,7 @@ execCommand "pip3 install virtualenv"
 header "Download luxcena-neo"
 INSTALLDIR=$(getent passwd "$username" | cut -d: -f6)
 APIURL="https://api.github.com/repos/JakobST1n/luxcena-neo"
-REPOINFO=$(curl -s "$APIURL/releases/86402456" -H "Accept: application/vnd.github+json")
+REPOINFO=$(curl -s "$APIURL/releases/latest" -H "Accept: application/vnd.github+json")
 TARBALL_NAME=$(echo "$REPOINFO" | jq '.assets[0].name')
 TARBALL_URL=$(echo "$REPOINFO" | jq '.assets[0].browser_download_url')
 execCommand "runuser -l $username -c \"curl -s -L -o $INSTALLDIR/$TARBALL_NAME $TARBALL_URL\""
