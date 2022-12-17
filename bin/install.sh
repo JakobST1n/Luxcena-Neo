@@ -96,7 +96,7 @@ function execCommand() {
         TPUT cuf $(tput cols)
         printf "\n"
         if [ $# -eq 1 ] || [ $2 -eq "0" ]; then
-            commandError $1
+            commandError $log
         fi
     fi
     rm $log
@@ -153,10 +153,12 @@ TARBALL_URL=$(echo "$REPOINFO" | jq '.assets[0].browser_download_url')
 execCommand "runuser -l $username -c \"curl -s -L -o $INSTALLDIR/$TARBALL_NAME $TARBALL_URL\""
 
 header "Install luxcena-neo"
-execCommand "runuser -l $username -c \"export NODE_ENV=production; npm --prefix $INSTALLDIR/luxcena-neo/ install $INSTALLDIR/$TARBALL_NAME \""
+execCommand "runuser -l $username -c \"export NODE_ENV=production; npm --prefix $INSTALLDIR/luxcena-neo-tmp/ install $INSTALLDIR/$TARBALL_NAME \""
+execCommand "runuser -l $username -c \"mv $INSTALLDIR/luxcena-neo-tmp/node_modules/luxcena-neo/ $INSTALLDIR/luxcena-neo\""
 execCommand "runuser -l $username -c \"rm $INSTALLDIR/$TARBALL_NAME\""
+execCommand "runuser -l $username -c \"rm -r $INSTALLDIR/luxcena-neo-tmp\""
 
 # Installation is done!
 printf '\n\e[5m%s\e[0m\n' "🎉Luxcena-Neo is now installed🎉"
-echo "Run 'sudo $INSTALLDIR/luxcena-neo/node_modules/luxcena-neo/bin/luxcena-neo.sh'"
+echo "Run 'sudo $INSTALLDIR/luxcena-neo/bin/luxcena-neo.sh'"
 TPUT cnorm

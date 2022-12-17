@@ -3,6 +3,8 @@ __pycache__
 venv
 tmp
 
+*.tgz
+
 *.log
 *.error
 
@@ -11,4 +13,8 @@ variables.json
 globvars.json
 
 /src_frontend/
+/docs/
 /docs/assets/
+mkdocs.yml
+rollup.config.js
+

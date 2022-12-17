@@ -5,10 +5,8 @@
     import { authorizedSocket } from "../../stores/socketStore.js";
 
     let version = "-";
-    let branch = "-";
     let newVer = "-";
     
-    authorizedSocket.on("version:branch", _branch => branch = _branch);
     authorizedSocket.on("version:current_number", _version => version = _version);
     authorizedSocket.on("version:newest_number", _version => newVer = _version);
 
@@ -27,7 +25,6 @@
     }
     
     onMount(async() => {
-        authorizedSocket.emit("version:branch");
         authorizedSocket.emit("version:current_number");
         authorizedSocket.emit("version:newest_number");
     });
@@ -55,7 +52,6 @@
 <div>
     <h1>Version</h1>
     <p><span class="label">Current version</span> <PrettyVar varText={version}/></p>
-    <p><span class="label">Current branch</span> <PrettyVar bind:varText={branch}/></p>
     {#if newVer != version}
     <p><span class="update-available">Version <PrettyVar bind:varText={newVer} /> available.</span></p>
     <FloatingButton on:click={doUpdate} bind:loadingPromise={updateVersionPromise} fullWidth=true>Update luxcena-neo</FloatingButton>

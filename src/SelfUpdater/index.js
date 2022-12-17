@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'fs';
-import { ensureDirSync } from 'fs-extra';
-import { copyFile, rm } from 'fs/promises';
+import { ensureDirSync, copy } from 'fs-extra';
+import { rm, stat } from 'fs/promises';
 import url from 'node:url';
 import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
@@ -143,16 +143,11 @@ class Updater {
 
             // Create backup
             this.setStep("Creating backup (2/7)");
-            this.setCommand("Create backupdir");
-            this.backupdir = createUniqueDir("/var/luxcena-neo/backups", "backup");
-            this.setCommand(`Copy ${__appdir} into ${this.backupdir}`);
-            await copyFile(__appdir, this.backupdir);
-            this.backupcomplete = true;
-    
+            await this.createBackup();
+   
             // Install dependencies
             this.setStep("Installing dependencies (3/7)");
             await this.installDependencies();
-            return
             
             // Install package
             this.setStep("Installing package (4/7)");
@@ -160,8 +155,7 @@ class Updater {
 
             // Install update
             this.setStep("Installing update (5/7)");
-            this.setCommand(`Copy ${this.updatedir} into ${__appdir}`);
-            await copyFile(this.updatedir, __appdir);
+            await this.installPackageFiles(this.updatedir);
 
             // Cleanup
             this.setStep("Cleaning up (6/7)");
@@ -191,8 +185,9 @@ class Updater {
             try {
                 if (this.backupcomplete && (this.backupdir != null)) {
                     this.setStep("Restoring backup");
-                    this.setCommand(`Copy ${this.backupdir} into /opt/luxcena-neo`);
-                    await copyFile(this.backupdir, __appdir);
+                    this.setCommand(`Copy ${this.backupdir} into ${__appdir}`);
+                    await copy(this.backupdir, __appdir);
+                    await this.run("chown", ['-R', `${s.uid}:${s.gid}`, __appdir]);
                 }
                 this.setStep("Cleaning up");
                 await this.cleanup();
@@ -212,6 +207,19 @@ class Updater {
     async run(cmd, opts) {
         this.setCommand(`${cmd} ` + opts.join(" "));
         return await promiseSpawn(cmd, opts);
+    }
+
+    /**
+     * This creates a temporary directory, and creates a backup of the current installation.
+     */
+    async createBackup() {
+        this.setCommand("Create backupdir");
+        this.backupdir = createUniqueDir("/var/luxcena-neo/backups", "backup");
+        this.setCommand(`Copy ${__appdir} into ${this.backupdir}`);
+        await copy(__appdir, this.backupdir);
+        let s = await stat(__appdir);
+        await this.run("chown", ['-R', `${s.uid}:${s.gid}`, this.backupdir]);
+        this.backupcomplete = true;
     }
 
     /**
@@ -240,18 +248,37 @@ class Updater {
         await this.run("pip3", ["install", "virtualenv"]);
     }
 
+    /**
+     * Install the downloaded package file
+     */
     async installPackage(tmpdir) {
         await this.run("sh", ["-c", `export NODE_ENV=production; npm --prefix "${tmpdir}/luxcena-neo/" install "${tmpdir}/${this.latestRelease["assets"][0]["name"]}"`]);
+    }
+
+    /**
+     * Replace the current installation with the newly extracted files
+     */
+    async installPackageFiles(tmpdir) {
+        this.setCommand(`Stat current installation`);
+        let s = await stat(__appdir);
+        await this.run("chown", ['-R', `${s.uid}:${s.gid}`, tmpdir]);
+
+        this.setCommand(`Delete current installation`);
+        await rm(`${__appdir}`, {recursive: true});
+        
+        this.setCommand(`Copy ${tmpdir} into ${__appdir}`);
+        await copy(`${tmpdir}/luxcena-neo/node_modules/luxcena-neo/`, __appdir);
+        await this.run("chown", ['-R', `${s.uid}:${s.gid}`, __appdir]);
     }
 
     async cleanup() {
         if (this.updatedir != null) {
             this.setCommand(`Removing temporary update files ${this.updatedir}`);
-            await rm(this.updatedir);
+            await rm(this.updatedir, {recursive: true});
         }
         if (this.backupdir != null) {
             this.setCommand(`Removing ${this.backupdir}, thinking everything went fine :)`);
-            await rm(this.backupdir);
+            await rm(this.backupdir, {recursive: true});
         }
     }
 
