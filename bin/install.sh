@@ -140,7 +140,7 @@ else
   execCommand "apt -qy install nodejs"
 fi
 execCommand "apt -qy install jq curl"
-execCommand "apt -qy install python3-pip"
+execCommand "apt -qy install python3-pip python3-venv"
 execCommand "pip3 install virtualenv"
 
 # Get package
