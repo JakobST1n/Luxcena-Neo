@@ -6,6 +6,7 @@ from .power_calc import calcCurrent
 """ import rpi_ws281x library, or import dummy version. """
 try:
     import rpi_ws281x as ws
+    print("rpi_ws281x library imported")
 except ModuleNotFoundError:
     """ Dummy STRIP used for debugging purposes """
     class STRIP:
@@ -135,7 +136,7 @@ class Strip:
         self.__actual_brightness = value
         # Logarithmic curve, to try to make the brightness controll feel more natural.
         v = int(10**((value-1)/41.11))
-        self.strip.setBrightness(v)
+        self.strip.setBrightness(min(255, v))
         self.show()
 
     def show(self):
