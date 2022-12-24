@@ -26,7 +26,7 @@ class Main(NeoBehaviour):
 
     def each_tick(self):
         """Draw rainbow that fades across all pixels at once."""
-        if (perf_counter() - self.last_inst) > (1.01-self.var.Speed):
+        if (perf_counter() - self.last_inst) > (1.01-self.var.speed):
             self.last_inst = perf_counter()
             self.j += 1
             if self.j >= 256: self.j = 0

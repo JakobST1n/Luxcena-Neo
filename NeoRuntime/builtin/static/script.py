@@ -7,10 +7,11 @@ class Main(NeoBehaviour):
 
     def on_start(self):
         print("Script started, color: {}".format(self.var.color))
+
+    def each_tick(self):
+        self.set_color(self.var.color)
         
     def set_color(self, value):
-        print("Color var changed: {}".format(value))
-        print(utils.detect_format_convert_color(value))
         for i in range(strip.LED_COUNT):
             strip.set_pixel_color(i, value)
         strip.show()

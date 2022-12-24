@@ -4,7 +4,7 @@ from time import perf_counter
 class Main(NeoBehaviour):
 
     def declare_variables(self):
-        self.declare(FloatVariable("delay", 0.07, min_val=0.01, max_val=0.5, step=0.01))
+        self.declare(FloatVariable("delay", 0.07, min_val=0.000001, max_val=0.5, step=0.000001))
         self.declare(IntegerVariable("pause", 20, min_val=1, max_val=60))
         self.declare(IntegerVariable("strobe count", 10, min_val=1, max_val=100))
         self.declare(ColorVariable("color", "#fafafa"))

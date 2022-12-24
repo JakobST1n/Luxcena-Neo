@@ -24,4 +24,5 @@ class Main(NeoBehaviour):
                                         int(((sin(i+self.position) * 127 + 128)/255)*self.green),
                                         int(((sin(i+self.position) * 127 + 128)/255)*self.blue));
             self.last_inst = perf_counter()
+            strip.show()
      
